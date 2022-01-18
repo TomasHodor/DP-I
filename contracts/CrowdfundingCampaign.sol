@@ -36,7 +36,7 @@ contract CrowdfundingCampaign {
     uint public contributorsCount;
     uint public minimumContribution;
     uint public totalValue;
-    
+
     constructor(uint minimum, address creator) public {
         owner = creator;
         minimumContribution = minimum;
@@ -48,27 +48,31 @@ contract CrowdfundingCampaign {
     
     function contribute() public payable returns(uint numberOfContributors) {
         require(msg.value >= minimumContribution);
+        require(msg.sender.balance >= msg.value);
         contributors[msg.sender] = true;
         contributorsCount++;
         totalValue += msg.value;
+        owner.transfer(msg.value);
         return this.contributorsCount();
     }
 
-    function contribute2(uint money) public returns(uint numberOfContributors) {
+    function contribute2(uint money) public payable returns(uint numberOfContributors) {
         require(money >= minimumContribution);
         contributors[msg.sender] = true;
         contributorsCount++;
         totalValue += money;
         emit contributeMoney(msg.sender, money);
+        owner.transfer(msg.value);
         return this.contributorsCount();
     }
 
-    function contribute3(uint money, address toAddress) public returns(uint numberOfContributors) {
+    function contribute3(uint money, address toAddress) public payable returns(uint numberOfContributors) {
         require(money >= minimumContribution);
         contributors[toAddress] = true;
         contributorsCount++;
         totalValue += money;
         emit contributeMoney(toAddress, money);
+        owner.transfer(money);
         return this.contributorsCount();
     }
 

@@ -36,6 +36,8 @@ contract('CrowdfundingCampaign',  accounts => {
         let owner = await campaign.getOwnerAddress.call()
         assert.equal(owner.valueOf(), ownerAddress);
 
+        let balanceBefore = await web3.eth.getBalance(ownerAddress);
+
         await campaign.contribute({value: 10, from: accounts[1]})
         await campaign.contribute({value: 20, from: accounts[2]})
 
@@ -44,12 +46,18 @@ contract('CrowdfundingCampaign',  accounts => {
         let totalValue = await campaign.getTotalValue.call();
         assert.equal(totalValue.valueOf(),  10 + 20);
 
+        let balanceAfter = await web3.eth.getBalance(ownerAddress);
+        assert.equal(parseInt(balanceAfter),  parseInt(balanceBefore) + 10 + 20);
+
         await campaign.contribute({value: 15, from: accounts[5]})
 
         numberOfContributors = await campaign.getContributorsCount.call();
         assert.equal(numberOfContributors.valueOf(), 3);
         totalValue = await campaign.getTotalValue.call();
         assert.equal(totalValue.valueOf(),  10 + 20 + 15);
+
+        let balanceLast = await web3.eth.getBalance(ownerAddress);
+        assert.equal(parseInt(balanceLast),  parseInt(balanceAfter) + 15);
     });
 })
 

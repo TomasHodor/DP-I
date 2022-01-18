@@ -14,12 +14,14 @@ class ContributeCrowdfund extends React.Component {
     }
 
     handleValueChange(event) {
+        console.log(event.target.value)
         this.setState({value: event.target.value});
     }
 
 
     handleAddressChange(event) {
-        this.setState({address: event.target.address});
+        console.log(event.target.value)
+        this.setState({address: event.target.value});
     }
 
     render() {
