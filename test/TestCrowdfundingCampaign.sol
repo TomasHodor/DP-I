@@ -1,4 +1,4 @@
-pragma solidity ^0.4.25;
+pragma solidity >=0.4.21 <0.7.0;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
@@ -21,11 +21,11 @@ contract TestCrowdfundingCampaign {
         uint expectedTotalValue = 20;
         CrowdfundingCampaign campaign = new CrowdfundingCampaign(5, owner);
 
-        uint balanceBefore = campaign.owner().balance;
+        uint balanceBefore = campaign.ownerAddress().balance;
 
         uint contributors = campaign.contribute.value(expectedTotalValue)(address1);
 
-        uint balanceAfter = campaign.owner().balance;
+        uint balanceAfter = campaign.ownerAddress().balance;
 
         Assert.equal(campaign.getTotalValue(), expectedTotalValue, "Balance value");
         Assert.equal(contributors, 1, "Number of contributors");

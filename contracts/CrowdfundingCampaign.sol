@@ -1,18 +1,4 @@
-pragma solidity ^0.4.25;
-
-contract CrowdfundingCampaignFactory {
-    
-    address[] public deployedCampaigns;
-    
-    function createCampain(uint minimum) public {
-        address newCampain = new CrowdfundingCampaign(minimum, msg.sender);
-        deployedCampaigns.push(newCampain);
-    }
-    
-    function getDeployedCampaigns() public view returns (address[]) {
-        return deployedCampaigns;
-    }
-}
+pragma solidity >=0.4.21 <0.8.0;
 
 contract CrowdfundingCampaign {
     
@@ -24,80 +10,100 @@ contract CrowdfundingCampaign {
 //        uint approvalCount;
 //        mapping(address => bool) approvals;
 //    }
+//    Withdrawal [] public withdrawals;
+
+    string public name;
 
     struct Contribution {
         uint value;
         address contributor;
+        string description;
     }
-    
-//    Withdrawal [] public withdrawals;
-    address public owner;
+
+    Contribution [] public contributions;
+    address payable public ownerAddress;
     mapping(address => bool) contributors;
-    uint public contributorsCount;
     uint public minimumContribution;
     uint public totalValue;
 
-    constructor(uint minimum, address creator) public {
-        owner = creator;
+    constructor(string memory campaignName, uint minimum, address payable creator) public {
+        name = campaignName;
+        ownerAddress = creator;
         minimumContribution = minimum;
         totalValue = 0;
-        contributorsCount = 0;
     }
 
     event contributeMoney(address indexed _from, uint256 _value);
     
-    function contribute() public payable returns(uint numberOfContributors) {
+    function contribute(string memory description) public payable returns(bool) {
         require(msg.value >= minimumContribution);
-        require(msg.sender.balance >= msg.value);
+
+        Contribution memory newContribution = Contribution({
+            description: description,
+            value: msg.value,
+            contributor: msg.sender
+        });
+        contributions.push(newContribution);
+
         contributors[msg.sender] = true;
-        contributorsCount++;
         totalValue += msg.value;
-        owner.transfer(msg.value);
-        return this.contributorsCount();
+        bool success = ownerAddress.send(msg.value);
+        return success;
     }
 
-    function contribute2(uint money) public payable returns(uint numberOfContributors) {
+    function contribute2(uint money) public payable {
         require(money >= minimumContribution);
+
+        contributions.push(Contribution({
+            description: "",
+            value: money,
+            contributor: msg.sender
+        }));
+
         contributors[msg.sender] = true;
-        contributorsCount++;
         totalValue += money;
         emit contributeMoney(msg.sender, money);
-        owner.transfer(msg.value);
-        return this.contributorsCount();
+        ownerAddress.transfer(msg.value);
     }
 
-    function contribute3(uint money, address toAddress) public payable returns(uint numberOfContributors) {
+    function contribute3(uint money, address toAddress, string memory description) public payable returns(bool) {
         require(money >= minimumContribution);
+
+        contributions.push(Contribution({
+            description: description,
+            value: money,
+            contributor: toAddress
+        }));
+
         contributors[toAddress] = true;
-        contributorsCount++;
         totalValue += money;
         emit contributeMoney(toAddress, money);
-        owner.transfer(money);
-        return this.contributorsCount();
+        (bool success, ) =  ownerAddress.call.value(money)("");
+        return success;
+    }
+
+    function retrieveContribution(uint index) public payable returns(bool) {
+        Contribution memory contribution = contributions[index];
+        (bool success, ) = contribution.contributor.call.value(contribution.value)("");
+
+        delete contributions[index];
+        contributors[contribution.contributor] = false;
+        totalValue -= contribution.value;
+
+        return success;
     }
 
     function getContribution(address addr) public view returns(bool) {
         return contributors[addr];
     }
 
-    function getContributorsCount() public view returns(uint) {
-        return this.contributorsCount();
+    function getNumberOfContributions() public view returns(uint) {
+        return contributions.length;
     }
 
-    function getMinimumContribution() public view returns(uint) {
-        return this.minimumContribution();
-    }
-
-    function getTotalValue() public view returns(uint) {
-        return this.totalValue();
-    }
-
-    function getOwnerAddress() public view returns(address ) {
-        return this.owner();
-    }
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == ownerAddress);
         _;
     }
     

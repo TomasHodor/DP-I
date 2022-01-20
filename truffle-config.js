@@ -43,16 +43,16 @@ module.exports = {
     //   skipDryRun: true
     // }
   },
-  mocha: {},
-  compilers: {
-    solc: {
-      settings: {
-        optimizer: {
-          enabled: false, // Default: false
-          runs: 200      // Default: 200
-        },
-      },
-      version: "0.4.25"
-    }
-  }
+  // mocha: {},
+  // compilers: {
+  //   solc: {
+  //     settings: {
+  //       optimizer: {
+  //         enabled: false, // Default: false
+  //         runs: 200      // Default: 200
+  //       },
+  //     },
+  //     version: "0.4.25"
+  //   }
+  // }
 };
