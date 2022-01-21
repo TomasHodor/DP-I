@@ -102,7 +102,6 @@ contract('CrowdfundingCampaign',  accounts => {
         assert.equal(contribution2.description.valueOf(), contribution2Text);
     });
 
-
     it("test new crowdfunding campaign and multiple contributions", async () => {
         let ownerAddress = "0xFca5a0B5348277C2295c46DBc4E9c1AE56381F9b"
 
@@ -132,6 +131,28 @@ contract('CrowdfundingCampaign',  accounts => {
 
         let balanceLast = await web3.eth.getBalance(ownerAddress);
         assert.equal(parseInt(balanceLast),  parseInt(balanceAfter) + 15);
+    });
+
+    it("test retrive crowdfunding campaign", async () => {
+        let contribution1Text = "text";
+        let contribution1Value = 5;
+        let contribution1Account = accounts[1];
+        let contribution2Text = "text2";
+        let contribution2Value = 2;
+        let contribution2Account = accounts[2];
+
+        let campaign = await CrowdfundingCampaign.new("Test", 1, accounts[0]);
+        assert.equal(await campaign.getNumberOfContributions.call(), 0);
+
+        await campaign.contribute(contribution1Text, {value: contribution1Value, from: contribution1Account});
+        await campaign.contribute(contribution2Text, {value: contribution2Value, from: contribution2Account});
+
+        await campaign.retrieveContribution(0);
+
+        let contribution2 = await campaign.contributions.call(1);
+        assert.equal(contribution2.contributor.valueOf(), contribution2Account);
+        assert.equal(contribution2.value.valueOf(), contribution2Value);
+        assert.equal(contribution2.description.valueOf(), contribution2Text);
     });
 })
 

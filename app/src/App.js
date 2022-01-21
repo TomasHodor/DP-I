@@ -1,29 +1,24 @@
 import React from "react";
-import { DrizzleContext } from "@drizzle/react-plugin";
-import { Drizzle } from "@drizzle/store";
-import drizzleOptions from "./drizzleOptions";
 import "./App.css";
-import ContributeCrowdfund from "./components/ContributeCrowdfund";
+import Navbar from "./components/navbar/Navbar";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from "./pages/Home";
+import Contribute from "./pages/Contribute";
+import Registration from "./pages/Registration";
 
-const drizzle = new Drizzle(drizzleOptions);
 
 const App = () => {
   return (
-    <DrizzleContext.Provider drizzle={drizzle}>
-      <DrizzleContext.Consumer>
-        {drizzleContext => {
-          const { drizzle, drizzleState, initialized } = drizzleContext;
-
-          if (!initialized) {
-            return "Loading..."
-          }
-
-          return (
-            <ContributeCrowdfund drizzle={drizzle} drizzleState={drizzleState} />
-          )
-        }}
-      </DrizzleContext.Consumer>
-    </DrizzleContext.Provider>
+      <div className="App">
+          <Router>
+              <Navbar />
+              <Routes>
+                  <Route path='/' exact element={<Home/>} />
+                  <Route path='/Contribute' exact element={<Contribute/>} />
+                  <Route path='/Registration' exact element={<Registration/>} />
+              </Routes>
+          </Router>
+      </div>
   );
 }
 
