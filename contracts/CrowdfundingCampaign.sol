@@ -12,84 +12,103 @@ contract CrowdfundingCampaign {
 //    }
 //    Withdrawal [] public withdrawals;
 
-    string public name;
+    string public campaignName;
 
     struct Contribution {
         uint value;
-        address contributor;
+        address payable contributor;
         string description;
     }
 
+    bool public status = false;
+    uint public totalValue;
+    uint public goalValue;
     Contribution [] public contributions;
     address payable public ownerAddress;
     mapping(address => bool) contributors;
-    uint public minimumContribution;
-    uint public totalValue;
 
-    constructor(string memory campaignName, uint minimum, address payable creator) public {
-        name = campaignName;
+    constructor(string memory name, uint goal, address payable creator) public {
+        campaignName = name ;
+        goalValue = goal;
         ownerAddress = creator;
-        minimumContribution = minimum;
         totalValue = 0;
+        status = true;
     }
 
-    event contributeMoney(address indexed _from, uint256 _value);
-    
-    function contribute(string memory description) public payable returns(bool) {
-        require(msg.value >= minimumContribution);
+    event contributeMoney(address indexed _from, uint _value);
+    event returnContribution(address indexed _from, uint _value);
 
+    function cancelCampaign() public {
+        status = false;
+        for (uint i = 0; i < contributions.length; i++) {
+            Contribution storage contribution = contributions[i];
+            emit returnContribution(ownerAddress, contribution.value);
+            bool success = contribution.contributor.send(contribution.value);
+            require(success);
+        }
+    }
+
+    function contribute(string memory description) public payable returns(bool) {
         Contribution memory newContribution = Contribution({
             description: description,
             value: msg.value,
             contributor: msg.sender
         });
-        contributions.push(newContribution);
+        emit contributeMoney(msg.sender, msg.value);
+        bool success = ownerAddress.send(msg.value);
+        if (success) {
+            contributions.push(newContribution);
+            contributors[msg.sender] = true;
+            totalValue += msg.value;
+        }
+        return success;
+    }
 
-        contributors[msg.sender] = true;
+    function contribute2(string memory description, address payable fromAddress) public payable returns(bool) {
+        contributions.push(Contribution({
+            description: description,
+            value: msg.value,
+            contributor: fromAddress
+        }));
+
+        contributors[fromAddress] = true;
         totalValue += msg.value;
+        emit contributeMoney(fromAddress, msg.value);
+        ownerAddress.transfer(msg.value);
         bool success = ownerAddress.send(msg.value);
         return success;
     }
 
-    function contribute2(uint money) public payable {
-        require(money >= minimumContribution);
-
-        contributions.push(Contribution({
-            description: "",
-            value: money,
-            contributor: msg.sender
-        }));
-
-        contributors[msg.sender] = true;
-        totalValue += money;
-        emit contributeMoney(msg.sender, money);
-        ownerAddress.transfer(msg.value);
-    }
-
-    function contribute3(uint money, address toAddress, string memory description) public payable returns(bool) {
-        require(money >= minimumContribution);
-
-        contributions.push(Contribution({
+    function contribute3(
+        uint256 contribValue,
+        address payable fromAddress,
+        string memory description
+    ) public payable returns(bool, string memory) {
+        Contribution memory newContribution = Contribution({
             description: description,
-            value: money,
-            contributor: toAddress
-        }));
+            value: contribValue,
+            contributor: fromAddress
+        });
+        contributions.push(newContribution);
 
-        contributors[toAddress] = true;
-        totalValue += money;
-        emit contributeMoney(toAddress, money);
-        (bool success, ) =  ownerAddress.call.value(money)("");
-        return success;
+        contributors[fromAddress] = true;
+        totalValue += contribValue;
+        emit contributeMoney(fromAddress, contribValue);
+        (bool success, bytes memory data) =  ownerAddress.call.value(contribValue)("");
+        //require(success, "Failed to send Ether");
+        return (success, string(data));
     }
 
     function retrieveContribution(uint index) public payable returns(bool) {
         Contribution memory contribution = contributions[index];
-        (bool success, ) = contribution.contributor.call.value(contribution.value)("");
 
         delete contributions[index];
         contributors[contribution.contributor] = false;
         totalValue -= contribution.value;
+        address payable contributorAddress = contribution.contributor;
 
+        emit contributeMoney(ownerAddress, contribution.value);
+        bool success = contributorAddress.send(contribution.value);
         return success;
     }
 
@@ -101,12 +120,11 @@ contract CrowdfundingCampaign {
         return contributions.length;
     }
 
-
     modifier onlyOwner() {
         require(msg.sender == ownerAddress);
         _;
     }
-    
+
     modifier onlyContributor() {
         require(contributors[msg.sender]);
         _;
