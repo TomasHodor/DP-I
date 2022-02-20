@@ -9,7 +9,7 @@ const options = {
   },
   contracts: [CrowdfundingCampaign, CrowdfundingCampaignFactory],
   events: {
-    SimpleStorage: ["CrowdfundingCampaign"],
+    CrowdfundingCampaign: ["contributeMoney"],
   },
 };
 

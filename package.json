@@ -1,5 +1,5 @@
 {
-  "name": "drizzle-box",
+  "name": "crowdfunding-campaign",
   "version": "1.0.0",
   "description": "",
   "main": "truffle-config.js",
@@ -16,15 +16,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/truffle-box/drizzle-box.git"
+    "url": "git+https://github.com/TomasHodor/DP-I-project"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/truffle-box/drizzle-box/issues"
-  },
-  "homepage": "https://github.com/truffle-box/drizzle-box#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^2.4.0"
   }

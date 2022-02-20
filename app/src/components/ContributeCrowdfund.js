@@ -33,7 +33,7 @@ class ContributeCrowdfund extends React.Component {
                     <ContractData
                         drizzle={this.props.drizzle}
                         drizzleState={this.props.drizzleState}
-                        contract="CrowdfundingCampaignInit"
+                        contract="CrowdfundingCampaign"
                         method="ownerAddress"
                     />
                 </p>
@@ -42,7 +42,7 @@ class ContributeCrowdfund extends React.Component {
                     <ContractData
                         drizzle={this.props.drizzle}
                         drizzleState={this.props.drizzleState}
-                        contract="CrowdfundingCampaignInit"
+                        contract="CrowdfundingCampaign"
                         method="totalValue"
                     />
                 </p>
@@ -51,7 +51,7 @@ class ContributeCrowdfund extends React.Component {
                     <ContractData
                         drizzle={this.props.drizzle}
                         drizzleState={this.props.drizzleState}
-                        contract="CrowdfundingCampaignInit"
+                        contract="CrowdfundingCampaign"
                         method="goalValue"
                     />
                 </p>
@@ -61,8 +61,16 @@ class ContributeCrowdfund extends React.Component {
                 <input type="text" value={this.state.address} onChange={this.handleAddressChange} />
                 {/*<label>Description</label>*/}
                 {/*<input type="text" value={this.state.address} onChange={this.handleAddressChange} />*/}
-                <ContractForm drizzle={this.props.drizzle} contract="CrowdfundingCampaignInit" method="contribute" sendArgs={{ value: this.state.value, from: this.state.address }}   />
-                <ContractForm drizzle={this.props.drizzle} contract="CrowdfundingCampaignInit" method="contribute2" sendArgs={{ from: this.state.address }} />
+                <ContractForm
+                    drizzle={this.props.drizzle}
+                    contract="CrowdfundingCampaign"
+                    method="contribute"
+                    sendArgs={{ value: this.state.value, from: this.state.address }} />
+                <ContractForm
+                    drizzle={this.props.drizzle}
+                    contract="CrowdfundingCampaign"
+                    method="contributeCampaign"
+                    sendArgs={{ value: this.state.value, from: this.state.address }} />
             </div>
         )
     }
