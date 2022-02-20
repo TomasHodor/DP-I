@@ -19,9 +19,26 @@ contract('CrowdfundingCampaign', async accounts => {
         assert.equal(parseInt(balanceOwnerAfter), parseInt(balanceOwnerBefore) + parseInt(sendValue));
         assert(parseInt(balanceContributorBefore) > (parseInt(balanceContributorAfter)
             + (parseInt(sendValue) + trans.receipt.gasUsed + parseInt(gasPrice))));
-
-
     });
+
+    it("test contributionCampaign", async () => {
+        let campaign = await CrowdfundingCampaign.new("ContributeCampaignTest", web3.utils.toWei('500', 'gwei'), accounts[7]);
+        let ownerAddress = await campaign.ownerAddress.call();
+
+        let balanceCampaign = await web3.eth.getBalance(campaign.address);
+
+        let balanceOwnerBefore = await web3.eth.getBalance(ownerAddress.valueOf());
+
+        let sendValue = web3.utils.toWei('50', 'gwei')
+
+        await campaign.contributeCampaign("Test send 50 gwei", {value: sendValue, from: accounts[1]});
+        let balanceOwnerAfter = await web3.eth.getBalance(ownerAddress.valueOf());
+        let balanceCampaignAfter = await web3.eth.getBalance(campaign.address);
+
+        assert.equal(parseInt(balanceOwnerAfter), parseInt(balanceOwnerBefore));
+        assert.equal(parseInt(balanceCampaignAfter), parseInt(balanceCampaign) + parseInt(sendValue));
+    });
+
     it("test contribute crowdfunding campaign", async () => {
         let campaign = await CrowdfundingCampaign.new("ContributeTest", web3.utils.toWei('500', 'gwei'), accounts[8]);
         let ownerAddress = await campaign.ownerAddress.call();

@@ -63,7 +63,6 @@ class ContributeCrowdfund extends React.Component {
                 {/*<input type="text" value={this.state.address} onChange={this.handleAddressChange} />*/}
                 <ContractForm drizzle={this.props.drizzle} contract="CrowdfundingCampaignInit" method="contribute" sendArgs={{ value: this.state.value, from: this.state.address }}   />
                 <ContractForm drizzle={this.props.drizzle} contract="CrowdfundingCampaignInit" method="contribute2" sendArgs={{ from: this.state.address }} />
-                <ContractForm drizzle={this.props.drizzle} contract="CrowdfundingCampaignInit" method="contribute3"  />
             </div>
         )
     }

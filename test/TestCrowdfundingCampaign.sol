@@ -23,7 +23,7 @@ contract TestCrowdfundingCampaign {
 
         //uint balanceBefore = campaign.ownerAddress().balance;
 
-        bool success = campaign.contribute2.value(expectedValue)("TestContribution", address1);
+        bool success = campaign.contribute.value(expectedValue)("TestContribution", address1);
         Assert.equal(success, true, "");
 //        bool success2;
 //        string memory testString;

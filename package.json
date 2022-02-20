@@ -10,7 +10,8 @@
     "test": "truffle test",
     "testJsCrowdfundingCampaignInit": "truffle test test/crowdfundingCampaignInit.js",
     "testJsCrowdfundingCampaignContribute": "truffle test test/crowdfundingCampaignContribute.js",
-    "testJsCrowdfundingCampaignRetrive": "truffle test test/crowdfundingCampaingnRetrive.js",
+    "testJsCrowdfundingCampaignWithdraw": "truffle test test/crowdfundingCampaingnWithdraw.js",
+    "testJsCrowdfundingCampaignFinish": "truffle test test/crowdfundingCampaingnFinish.js",
     "testSolCrowdfundingCampaign": "truffle test test/TestCrowdfundingCampaign.sol"
   },
   "repository": {
