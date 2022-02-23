@@ -11,11 +11,10 @@ class NavBarTop extends React.Component {
                     <Nav className="me-auto">
                         <Nav.Link href="/">Home</Nav.Link>
                         <Nav.Link href="/contribute">Contribute</Nav.Link>
-                        <Nav.Link href="/registration"> Sign Up</Nav.Link>
+                        <Navbar.Toggle />
                         <Navbar.Collapse className="justify-content-end">
-                            <Navbar.Text>
-                                Signed in as: <a href="/signin">Sign In</a>
-                            </Navbar.Text>
+                            <Nav.Link href="/registration"> Sign Up</Nav.Link>
+                            <Nav.Link href="/login"> Sign In</Nav.Link>
                         </Navbar.Collapse>
                     </Nav>
                 </Container>

@@ -1,5 +1,6 @@
 import React from "react";
 import { newContextComponents } from "@drizzle/react-components";
+import {Container, Form} from "react-bootstrap";
 
 const { ContractData, ContractForm } = newContextComponents;
 
@@ -26,7 +27,7 @@ class ContributeCrowdfund extends React.Component {
 
     render() {
         return (
-            <div className="section">
+            <Container className="section">
                 <h2>Contribute to Crowdfund</h2>
                 <p>
                     <strong>Owner: </strong>
@@ -55,23 +56,27 @@ class ContributeCrowdfund extends React.Component {
                         method="goalValue"
                     />
                 </p>
-                <label>Value</label>
-                <input type="text" value={this.state.value} onChange={this.handleValueChange} />
-                <label>Address</label>
-                <input type="text" value={this.state.address} onChange={this.handleAddressChange} />
-                {/*<label>Description</label>*/}
-                {/*<input type="text" value={this.state.address} onChange={this.handleAddressChange} />*/}
+                <Form id="sign-in-form" className="text-center p-3 w-100" onSubmit={this.handleSubmit}>
+                    <Form.Group className="mb-3" controlId="formBasicEmail">
+                        <Form.Control type="number" placeholder="Enter value in Wei" value={this.state.value} onChange={this.handleValueChange}/>
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="formBasicPassword">
+                        <Form.Control type="text" placeholder="Enter address" value={this.state.address} onChange={this.handleAddressChange}/>
+                    </Form.Group>
+                    <Form.Group className="d-flex justify-content-center mb-4" controlId="creator">
+                        <ContractForm
+                            drizzle={this.props.drizzle}
+                            contract="CrowdfundingCampaign"
+                            method="contributeCampaign"
+                            sendArgs={{ value: this.state.value, from: this.state.address }} />
+                    </Form.Group>
+                </Form>
                 <ContractForm
                     drizzle={this.props.drizzle}
                     contract="CrowdfundingCampaign"
                     method="contribute"
                     sendArgs={{ value: this.state.value, from: this.state.address }} />
-                <ContractForm
-                    drizzle={this.props.drizzle}
-                    contract="CrowdfundingCampaign"
-                    method="contributeCampaign"
-                    sendArgs={{ value: this.state.value, from: this.state.address }} />
-            </div>
+            </Container>
         )
     }
 }

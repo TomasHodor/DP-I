@@ -4,9 +4,10 @@ import NavBarTop from "./components/navbar/NavBarTop";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from "./pages/Home";
 import Contribute from "./pages/Contribute";
-import Registration from "./pages/Registration";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import Registration from "./pages/Registration/Registration";
+import Login from "./pages/Login/Login";
 
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
                   <Route path='/' exact element={<Home/>} />
                   <Route path='/contribute' exact element={<Contribute/>} />
                   <Route path='/registration' exact element={<Registration/>} />
+                  <Route path='/login' exact element={<Login/>} />
               </Routes>
           </Router>
       </div>
