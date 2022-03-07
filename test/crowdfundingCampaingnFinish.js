@@ -1,23 +1,23 @@
 const CrowdfundingCampaign = artifacts.require("CrowdfundingCampaign");
 
 contract('CrowdfundingCampaign', async accounts => {
-    it("test finish crowdfunding campaign false", async () => {
-        let contrib1Text = "text";
-        let contrib1Value = 5000000;
-        let contrib1Account = accounts[1];
-
-        let campaign = await CrowdfundingCampaign.new("TestFinish", 6000000, accounts[0]);
-        await campaign.contributeCampaign(contrib1Text, {value: contrib1Value, from: contrib1Account});
-
-        let contrib1 = await campaign.getContribution(contrib1Account)
-        assert.equal(contrib1.valueOf(), true);
-        // compare totalValue
-        let totalValue = await campaign.totalValue.call();
-        assert.equal(totalValue.valueOf(), contrib1Value);
-        // finish campaign
-        let campaignResult = await campaign.finishCampaign.call();
-        assert.equal(campaignResult.valueOf(), false);
-    });
+    // it("test finish crowdfunding campaign false", async () => {
+    //     let contrib1Text = "text";
+    //     let contrib1Value = 5000000;
+    //     let contrib1Account = accounts[1];
+    //
+    //     let campaign = await CrowdfundingCampaign.new("TestFinish", 6000000, accounts[0]);
+    //     await campaign.contributeCampaign(contrib1Text, {value: contrib1Value, from: contrib1Account});
+    //
+    //     let contrib1 = await campaign.getContribution(contrib1Account)
+    //     assert.equal(contrib1.valueOf(), true);
+    //     // compare totalValue
+    //     let totalValue = await campaign.totalValue.call();
+    //     assert.equal(totalValue.valueOf(), contrib1Value);
+    //     // finish campaign
+    //     let campaignResult = await campaign.finishCampaign.call();
+    //     assert.equal(campaignResult.valueOf(), false);
+    // });
 
     // it("test finish crowdfunding campaign", async () => {
     //     let ownerAccount = accounts[9]
@@ -37,7 +37,7 @@ contract('CrowdfundingCampaign', async accounts => {
     //     await campaign.contributeCampaign(contrib2Text, {value: contrib2Value, from: contrib2Account});
     //
     //     let CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
-    //     console.log("Campaign balance:", CampaignAddressBalance);
+    //     console.log("Campaigns balance:", CampaignAddressBalance);
     //     assert.equal(parseInt(CampaignAddressBalance), contrib1Value + contrib2Value);
     //
     //     let contrib1 = await campaign.getContribution(contrib1Account)
@@ -52,7 +52,7 @@ contract('CrowdfundingCampaign', async accounts => {
     //     // console.log(campaignResult)
     //
     //     CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
-    //     console.log("Campaign balance:", CampaignAddressBalance);
+    //     console.log("Campaigns balance:", CampaignAddressBalance);
     //     assert.equal(parseInt(CampaignAddressBalance), 0);
     //
     //     let ownerBalanceAfter = await web3.eth.getBalance(ownerAccount);
@@ -79,8 +79,8 @@ contract('CrowdfundingCampaign', async accounts => {
         await campaign.contributeCampaign(contrib2Text, {value: contrib2Value, from: contrib2Account});
 
         let CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
-        console.log("Campaign balance:", campaign.address)
-        console.log("Campaign balance:", CampaignAddressBalance);
+        console.log("Campaigns balance:", campaign.address)
+        console.log("Campaigns balance:", CampaignAddressBalance);
         assert.equal(parseInt(CampaignAddressBalance), contrib1Value + contrib2Value);
 
         let contrib1 = await campaign.getContribution(contrib1Account)
@@ -91,11 +91,11 @@ contract('CrowdfundingCampaign', async accounts => {
         let totalValue = await campaign.totalValue.call();
         assert.equal(totalValue.valueOf(), contrib1Value + contrib2Value);
         // finish campaign
-        let campaignResult = await campaign.finishCampaign({from: campaign.address});
-        // console.log(campaignResult)
+        let campaignResult = await campaign.finishCampaign();
+        console.log(campaignResult)
 
         CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
-        console.log("Campaign balance:", CampaignAddressBalance);
+        console.log("Campaigns balance:", CampaignAddressBalance);
         assert.equal(parseInt(CampaignAddressBalance), 0);
 
         let ownerBalanceAfter = await web3.eth.getBalance(ownerAccount);

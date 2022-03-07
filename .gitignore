@@ -3,3 +3,6 @@
 /package-lock.json
 /app/package-lock.json
 /.idea/
+/app/backend/node_modules/
+/app/backend/.env
+/app/backend/package-lock.json

@@ -1,0 +1,1 @@
+psql -h 127.0.0.1 -U postgres -W postgres -d dpuitest -f db_scripts.sql

@@ -17,7 +17,7 @@ contract('CrowdfundingCampaign', async accounts => {
         await campaign.contributeCampaign(contrib2Text, {value: contrib2Value, from: contrib2Account});
 
         let CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
-        console.log("Campaign balance:", CampaignAddressBalance);
+        console.log("Campaigns balance:", CampaignAddressBalance);
 
         let contrib1 = await campaign.getContribution(contrib1Account)
         assert.equal(contrib1.valueOf(), true);
@@ -46,7 +46,7 @@ contract('CrowdfundingCampaign', async accounts => {
         assert(parseInt(balanceAcc1After) >= parseInt(balanceAcc1Before) + contrib1Value);
 
         CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
-        console.log("Campaign balance:", CampaignAddressBalance);
+        console.log("Campaigns balance:", CampaignAddressBalance);
         assert.equal(parseInt(CampaignAddressBalance), contrib2Value);
     });
 

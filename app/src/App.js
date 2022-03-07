@@ -1,28 +1,48 @@
 import React from "react";
 import "./App.css";
 import NavBarTop from "./components/navbar/NavBarTop";
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Home from "./pages/Home";
-import Contribute from "./pages/Contribute";
+import Campaigns from "./pages/Campaigns/Campaigns";
 import Registration from "./pages/Registration/Registration";
 import Login from "./pages/Login/Login";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const App = () => {
-  return (
-      <div className="App">
-          <NavBarTop />
-          <Router>
-              <Routes>
-                  <Route path='/' exact element={<Home/>} />
-                  <Route path='/contribute' exact element={<Contribute/>} />
-                  <Route path='/registration' exact element={<Registration/>} />
-                  <Route path='/login' exact element={<Login/>} />
-              </Routes>
-          </Router>
-      </div>
-  );
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            user: null,
+        };
+    }
+
+    login(user) {
+        const loggedUser = user !== undefined ? user : null;
+        this.setState({user: loggedUser});
+    }
+
+    logout() {
+        this.setState({user: null});
+    }
+
+    render() {
+        return(
+            <div className="App">
+                <Router>
+                    <NavBarTop user={this.state.user} handleLogout={this.logout.bind(this)}/>
+                    <Routes>
+                        <Route path='/' element={<Home/>} />
+                        <Route path='/campaigns' element={<Campaigns/>} />
+                        <Route path='/registration' element={
+                            <Registration handleLogin={this.login.bind(this)}/>} />
+                        <Route path='/login' element={
+                            <Login handleLogin={this.login.bind(this)} />} />
+                    </Routes>
+                </Router>
+            </div>
+        );
+    }
 }
 
 export default App;
