@@ -30,7 +30,7 @@ class Login extends React.Component {
                         user_id: data[0].user_id,
                         wrongPassword: false
                     });
-                    this.props.handleLogin({"userId": data[0].user_id, "email": this.state.email});
+                    this.props.handleLogin({"user_id": data[0].user_id, "email": this.state.email});
                 } else {
                     this.setState({
                         wrongPassword: true
@@ -40,7 +40,6 @@ class Login extends React.Component {
     }
 
     render() {
-        console.log(this.state.user_id)
         return (
             <Container id="main-container" className="d-grid h-100">
                 <Form id="sign-in-form" className="text-center p-3 w-100" onSubmit={this.handleSubmit}>

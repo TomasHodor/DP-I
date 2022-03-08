@@ -19,7 +19,7 @@ class Campaigns extends React.Component {
 
     componentDidMount() {
         this.getAllCampaigns();
-     }
+    }
 
     showCampaignModal(address) {
         const campaignAddress = address !== undefined ? address : null;

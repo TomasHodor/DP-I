@@ -22,7 +22,9 @@ class NavBarTop extends React.Component {
         const user = this.props.user
         const logonUser = (
             <>
-                {user && 'email' in user ? <div className="text-light">{user.email}</div> : null}
+                {user && 'email' in user
+                    ? <LinkContainer to="/user"><Nav.Link>{user.email}</Nav.Link></LinkContainer>
+                    : null}
                 <Button variant="light" onClick={this.logout.bind(this)}>Logout</Button>
             </>
         )

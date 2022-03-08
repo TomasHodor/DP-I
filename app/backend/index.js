@@ -34,6 +34,21 @@ app.get('/user', (req, res) => {
         });
 });
 
+app.get('/user/user_id=:id', (req, res) => {
+    const id = req.params.id;
+    db.select('*')
+        .from('user')
+        .where('user_id', '=', id)
+        .then((data) => {
+            console.log('Get user');
+            console.log(data);
+            res.json(data);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
 app.get('/user/:email', (req, res) => {
     const email = req.params.email;
     db.select('*')

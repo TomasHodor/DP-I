@@ -32,7 +32,6 @@ class NewCampaignModal extends React.Component {
             })
         })
             .then(response => response.json().then(data => {
-                console.log(data);
                 this.setState({campaign_id: data.campaign_id})
                 this.handleClose();
             }))

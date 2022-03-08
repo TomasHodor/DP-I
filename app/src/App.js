@@ -8,6 +8,7 @@ import Registration from "./pages/Registration/Registration";
 import Login from "./pages/Login/Login";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import User from "./pages/User/User";
 
 class App extends React.Component {
     constructor(props) {
@@ -27,6 +28,7 @@ class App extends React.Component {
     }
 
     render() {
+        let user_id = this.state.user && 'user_id' in this.state.user ? this.state.user.user_id: null
         return(
             <div className="App">
                 <Router>
@@ -38,6 +40,8 @@ class App extends React.Component {
                             <Registration handleLogin={this.login.bind(this)}/>} />
                         <Route path='/login' element={
                             <Login handleLogin={this.login.bind(this)} />} />
+                        <Route path='/user' element={
+                            <User user={this.state.user}/>} />
                     </Routes>
                 </Router>
             </div>
