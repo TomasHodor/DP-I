@@ -12,17 +12,6 @@ class ContributeCrowdfund extends React.Component {
             value: '',
             address: ''
         };
-
-        this.handleValueChange = this.handleValueChange.bind(this);
-        this.handleAddressChange = this.handleAddressChange.bind(this);
-    }
-
-    handleValueChange(event) {
-        this.setState({value: event.target.value});
-    }
-
-    handleAddressChange(event) {
-        this.setState({address: event.target.value});
     }
 
     render() {
@@ -58,10 +47,18 @@ class ContributeCrowdfund extends React.Component {
                 </p>
                 <Form id="sign-in-form" className="text-center p-3 w-100" onSubmit={this.handleSubmit}>
                     <Form.Group className="mb-3" controlId="formBasicEmail">
-                        <Form.Control type="number" placeholder="Enter value in Wei" value={this.state.value} onChange={this.handleValueChange}/>
+                        <Form.Control
+                            type="number"
+                            placeholder="Enter value in Wei"
+                            value={this.state.value}
+                            onChange={(event) => this.setState({value: event.target.value})}/>
                     </Form.Group>
                     <Form.Group className="mb-3" controlId="formBasicPassword">
-                        <Form.Control type="text" placeholder="Enter address" value={this.state.address} onChange={this.handleAddressChange}/>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter address"
+                            value={this.state.address}
+                            onChange={(event) => this.setState({address: event.target.value})}/>
                     </Form.Group>
                     <Form.Group className="d-flex justify-content-center mb-4" controlId="creator">
                         <ContractForm
@@ -71,11 +68,6 @@ class ContributeCrowdfund extends React.Component {
                             sendArgs={{ value: this.state.value, from: this.state.address }} />
                     </Form.Group>
                 </Form>
-                <ContractForm
-                    drizzle={this.props.drizzle}
-                    contract="CrowdfundingCampaign"
-                    method="contribute"
-                    sendArgs={{ value: this.state.value, from: this.state.address }} />
             </Container>
         )
     }
