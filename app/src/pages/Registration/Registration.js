@@ -23,14 +23,31 @@ class Registration extends React.Component {
     async handleSubmit(event) {
         event.preventDefault();
 
-        if (this.state.password !== this.state.password2) {
-            this.setState({formError: "Passwords are not same", error: {'password': true}});
-            return;
-        }
         if (this.state.email === '') {
             this.setState({formError: "Email is empty", error: {'email': true}});
             return;
         }
+
+        if (this.state.password === '') {
+            this.setState({formError: "Passwords is empty", error: {'password': true}});
+            return;
+        }
+
+        if (this.state.password !== this.state.password2) {
+            this.setState({formError: "Passwords are not same", error: {'password': true}});
+            return;
+        }
+        let users = await fetch('http://127.0.0.1:5000/user/' + this.state.email, {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json'}
+        })
+
+        users = await users.json()
+        if (users.length) {
+            this.setState({formError: "Email is already occupied", error: {'email': true}});
+            return;
+        }
+
         const hashedPassword = await bcrypt.hash(this.state.password, 10)
         fetch('http://127.0.0.1:5000/user', {
             method: 'POST',
@@ -42,11 +59,10 @@ class Registration extends React.Component {
                 password: hashedPassword,
                 phone: this.state.phone
             })
-        })
-            .then(response => response.json().then(data => {
-                this.setState({user_id: data.user_id, email: '', password: '', password2: '', error: {}, formError:''});
-                this.props.handleLogin({"userId": data.user_id, "email": this.state.email});
-            }))
+        }).then(response => response.json().then(data => {
+            this.props.handleLogin({"user_id": data.user_id, "email": this.state.email});
+            this.setState({user_id: data.user_id});
+        }))
     }
 
     render() {
@@ -57,6 +73,7 @@ class Registration extends React.Component {
                         <Form.Control
                             type="email"
                             placeholder="Enter email"
+                            required
                             value={this.state.email}
                             onChange={(e) =>  this.setState({email: e.target.value})}
                             isInvalid={ !!this.state.error.email }
@@ -90,6 +107,7 @@ class Registration extends React.Component {
                         <Form.Control
                             type="password"
                             placeholder="Enter password"
+                            required
                             value={this.state.password}
                             onChange={(e) =>  this.setState({password: e.target.value})}
                             isInvalid={ !!this.state.error.password }
@@ -99,6 +117,7 @@ class Registration extends React.Component {
                         <Form.Control
                             type="password"
                             placeholder="Retype password"
+                            required
                             value={this.state.password2}
                             onChange={(e) =>  this.setState({password2: e.target.value})}/>
                     </Form.Group>

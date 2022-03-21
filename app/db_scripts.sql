@@ -1,5 +1,7 @@
+DROP TABLE IF EXISTS "contribution";
 DROP TABLE IF EXISTS "campaign";
 DROP TABLE IF EXISTS "user" ;
+
 
 CREATE TABLE "user" (
     user_id serial PRIMARY KEY,
@@ -13,5 +15,13 @@ CREATE TABLE "user" (
 CREATE TABLE "campaign" (
     campaign_id serial PRIMARY KEY,
     address VARCHAR (255),
+    description TEXT,
     owner INTEGER REFERENCES "user"(user_id)
+);
+
+CREATE TABLE "contribution" (
+    contribution_id serial PRIMARY KEY,
+    hash VARCHAR (255),
+    contributor INTEGER REFERENCES "user"(user_id),
+    campaign INTEGER REFERENCES "campaign"(campaign_id)
 );

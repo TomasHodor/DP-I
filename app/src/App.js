@@ -9,6 +9,12 @@ import Login from "./pages/Login/Login";
 import User from "./pages/User/User";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { DrizzleContext } from "@drizzle/react-plugin";
+import { Drizzle } from "@drizzle/store";
+
+import drizzleOptions from "./drizzleOptions";
+
+const drizzle = new Drizzle(drizzleOptions);
 
 class App extends React.Component {
     constructor(props) {
@@ -30,19 +36,26 @@ class App extends React.Component {
     render() {
         return(
             <div className="App">
+                <DrizzleContext.Provider drizzle={drizzle}>
                 <Router>
                     <NavBarTop user={this.state.user} handleLogout={this.logout.bind(this)}/>
                     <Routes>
                         <Route path='/' element={<Home/>} />
-                        <Route path='/campaigns' element={<Campaigns/>} />
+                        <Route path='/campaigns' element={
+                            <Campaigns user={this.state.user}/>}
+                        />
                         <Route path='/registration' element={
-                            <Registration handleLogin={this.login.bind(this)}/>} />
+                            <Registration handleLogin={this.login.bind(this)}/>}
+                        />
                         <Route path='/login' element={
-                            <Login handleLogin={this.login.bind(this)} />} />
+                            <Login handleLogin={this.login.bind(this)} />}
+                        />
                         <Route path='/user' element={
-                            <User user={this.state.user}/>} />
+                            <User user={this.state.user}/>}
+                        />
                     </Routes>
                 </Router>
+                </DrizzleContext.Provider>
             </div>
         );
     }

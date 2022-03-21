@@ -12,31 +12,44 @@ class Login extends React.Component {
             email: '',
             password: '',
             userId: null,
-            wrongPassword: false
+            error: null
         };
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleSubmit(event) {
         event.preventDefault();
+        if (this.state.email === '') {
+            this.setState({error: "Email is empty"});
+            return;
+        }
+        if (this.state.password === "") {
+            this.setState({error: "Empty Password"});
+            return;
+        }
         fetch('http://localhost:5000/user/' + this.state.email, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => response.json().then(async data => {
+        }).then(response => response.json().then(async data => {
+            if (data.length) {
                 const success = await bcrypt.compare(this.state.password, data[0].password);
                 if (success) {
                     this.setState({
                         user_id: data[0].user_id,
-                        wrongPassword: false
+                        error: null
                     });
                     this.props.handleLogin({"user_id": data[0].user_id, "email": this.state.email});
                 } else {
                     this.setState({
-                        wrongPassword: true
+                        error: "Wrong Password"
                     });
                 }
-            }))
+            } else {
+                this.setState({
+                    error: "Not existing User"
+                });
+            }
+        }))
     }
 
     render() {
@@ -61,9 +74,9 @@ class Login extends React.Component {
                         <Button as="input" type="submit" value="Sign in" variant="dark" size="lg"/>
                     </div>
                     <br/>
-                    {this.state.wrongPassword ?
+                    {this.state.error ?
                         <Alert variant='danger'>
-                        Wrong password
+                            {this.state.error}
                         </Alert> : null}
                     {this.state.user_id ? <Navigate to="/campaigns" replace /> : null}
                 </Form>

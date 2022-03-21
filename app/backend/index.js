@@ -84,7 +84,7 @@ app.post('/user', (req, res) => {
 });
 
 app.get('/campaign', (req, res) => {
-    db.select('*')
+    db.select('address')
         .from('campaign')
         .then((data) => {
             console.log('Get campaigns');
@@ -96,16 +96,95 @@ app.get('/campaign', (req, res) => {
         });
 });
 
+app.get('/campaign/address=:address', (req, res) => {
+    const { address } = req.params;
+    db.select('*')
+        .from('campaign')
+        .where('address', '=', address)
+        .join('user', 'user.user_id', 'campaign.owner')
+        .then((data) => {
+            console.log('Get campaign');
+            console.log(data);
+            res.json(data);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
 app.post('/campaign', (req, res) => {
-    const { address, owner } = req.body;
+    const { address, owner, description } = req.body;
+    console.log(req.body);
     db('campaign')
         .insert({
             address: address,
             owner: owner,
+            description: description
         }, 'campaign_id')
         .then((response) => {
             console.log('Campaign Added');
             return res.json({ campaign_id: response[0].campaign_id });
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.get('/contribution', (req, res) => {
+    db.select('*')
+        .from('contribution')
+        .then((data) => {
+            console.log('Get contributions');
+            console.log(data);
+            return res.json(data);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.get('/contribution/campaign=:campaign', (req, res) => {
+    const { campaign } = req.params;
+    db.select('*')
+        .from('contribution')
+        .where('campaign', '=', campaign)
+        .then((data) => {
+            console.log('Get contribution');
+            console.log(data);
+            res.json(data);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.get('/contribution/contributor=:contributor&campaign=:campaign', (req, res) => {
+    const { contributor, campaign } = req.params;
+    db.select('*')
+        .from('contribution')
+        .where('contributor', '=', contributor)
+        .where('campaign', '=', campaign)
+        .then((data) => {
+            console.log('Get contribution');
+            console.log(data);
+            res.json(data);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.post('/contribution', (req, res) => {
+    const { contributor, campaign, hash } = req.body;
+    db('contribution')
+        .insert({
+            hash: hash,
+            contributor: contributor,
+            campaign: campaign
+        }, 'contribution_id')
+        .then((response) => {
+            console.log('Contribution Added');
+            return res.json({ contribution_id: response[0].contribution_id });
         })
         .catch((err) => {
             console.log(err);
