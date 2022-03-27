@@ -13,6 +13,7 @@ class CampaignCreation extends React.Component {
             goal: '',
             description: '',
             error: '',
+            etherValue: 'wei',
             confirmModal: false
         };
     }
@@ -20,17 +21,16 @@ class CampaignCreation extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
         if (typeof window.ethereum === 'undefined') {
-            console.log('MetaMask is missing!');
-            this.setState({ error: 'MetaMask is missing!' })
-            return
+            this.setState({ error: 'MetaMask is missing!' });
+            return;
         }
         if (this.state.name === '') {
-            this.setState({ error: 'Name of campaign is missing' })
-            return
+            this.setState({ error: 'Name of campaign is missing' });
+            return;
         }
         if (this.state.goal === '') {
-            this.setState({ error: 'Goal value for campaign is empty' })
-            return
+            this.setState({ error: 'Goal value for campaign is empty' });
+            return;
         }
         this.setState({ error: '', confirmModal: true });
     }
@@ -41,7 +41,6 @@ class CampaignCreation extends React.Component {
 
     async createCampaign() {
         let campaignOwner = this.props.user_id;
-        let campaignGoalValue = parseInt(this.state.goal) * 1000000;
 
         const accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
         if (accounts.length < 1) {
@@ -53,13 +52,15 @@ class CampaignCreation extends React.Component {
         let web3Contract = new web3.eth.Contract(CrowdfundingCampaign.abi, account);
         let result = await web3Contract.deploy({
             data: CrowdfundingCampaign.bytecode,
-            arguments: [this.state.name, campaignGoalValue, account]
-        }).send({ from: account, gas: 3000000, gasPrice: '20000000000' });
+            arguments: [this.state.name, web3.utils.toWei(this.state.goal, this.state.etherValue), account]
+        }).send({
+            from: account,
+            gas: 3000000,
+            gasPrice: '20000000000' });
         console.log(result);
         if (result) {
             let postResponse = await fetch('http://localhost:5000/campaign', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     owner: campaignOwner,
                     address: result.options.address,
@@ -80,7 +81,7 @@ class CampaignCreation extends React.Component {
                 show={this.state.confirmModal}
                 confirm={this.createCampaign.bind(this)}
                 cancel={this.closeConfirmModal.bind(this)}
-                text={'Do you want to create campaign "' + this.state.name + "'?"}
+                text={"Do you want to create campaign " + this.state.name + " ?"}
             />
         ) : null;
         return (
@@ -97,14 +98,17 @@ class CampaignCreation extends React.Component {
                             <Form.Control type="number" placeholder="Goal" value={this.state.goal}
                                 onChange={(e) => this.setState({goal: e.target.value})}/>
                         </Col>
-                        <Col md={4}>
-                            <Form.Label className="pt-2">Gwei</Form.Label>
+                        <Col md={3}>
+                            <Form.Select onChange={(e) => this.setState({etherValue: e.target.value})}>
+                                <option value="wei">Wei</option>
+                                <option value="gwei">Gwei</option>
+                                <option value="ether">Ether</option>
+                            </Form.Select>
                         </Col>
                     </Form.Group>
                     <Form.Group className="mb-3" controlId="formBasicGoal">
                         <Form.Control as="textarea" placeholder="Describe your campaign" rows={6} value={this.state.description}
-                            onChange={(e) => this.setState({description: e.target.value})}
-                        />
+                            onChange={(e) => this.setState({description: e.target.value})}/>
                     </Form.Group>
                     <div className="d-grid mb-2">
                         <Button variant="outline-dark" onClick={this.handleSubmit.bind(this)}>Create Campaign</Button>

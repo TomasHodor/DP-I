@@ -13,6 +13,7 @@ class CampaignDetail extends React.Component {
             confirmModalText: '',
             value: '',
             description: '',
+            etherValue: 'wei',
             totalValue: 0,
             goalValue: 1000000,
             contributions: [],
@@ -38,10 +39,6 @@ class CampaignDetail extends React.Component {
         const crowdfundingCampaignMethods = this.props.drizzle.contracts[this.props.name].methods;
         let valueTypeFunc = await crowdfundingCampaignMethods[valueType].call();
         return await valueTypeFunc.call();
-    }
-
-    async getDataset(url) {
-
     }
 
     async componentDidMount() {
@@ -106,7 +103,6 @@ class CampaignDetail extends React.Component {
                         let trans = await web3.eth.getTransaction(jsonResponse[i].hash);
                         let valueTypeFunc = await crowdfundingCampaignMethods.contributions2(trans.from, i);
                         let contribution = await valueTypeFunc.call();
-                        console.log(contribution)
                         jsonResponse[i]["value"] = trans.value;
                         jsonResponse[i]["from"] = trans.from;
                         jsonResponse[i]["text"] = contribution.description;
@@ -114,7 +110,6 @@ class CampaignDetail extends React.Component {
                 }
                 this.setState({ contributions: jsonResponse })
             }
-                await this.getDataset();
         }
     }
 
@@ -140,20 +135,18 @@ class CampaignDetail extends React.Component {
         const accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
         console.log(accounts)
         if (accounts.length === 0) {
-            this.setState({ error: 'No MetaMask accounts' })
-            return
+            this.setState({ error: 'No MetaMask accounts' });
+            return;
         }
         const account = accounts[0];
-        let contribValue = parseInt(this.state.value) * 1000000;
         const crowdfundingCampaign = this.props.drizzle.contracts[this.props.name];
         let contributeFunction = await crowdfundingCampaign.methods.contributeCampaign(this.state.description);
         let contributeResult = await contributeFunction.call();
         if (contributeResult) {
             let contributeSendResult = await contributeFunction.send({
-                value: contribValue, from: account, gas: 1000000
+                value: web3.utils.toWei(this.state.value, this.state.etherValue), from: account, gas: 1000000
             })
             console.log(contributeSendResult);
-            this.setState({ gas: contributeSendResult.gasUsed });
             let postResponse = await fetch('http://localhost:5000/contribution', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -169,14 +162,18 @@ class CampaignDetail extends React.Component {
                 campaign: this.state.campaignId,
                 contributor: this.state.user.user_id,
                 hash: contributeSendResult.transactionHash,
-                value: this.state.value,
+                value: web3.utils.toWei(this.state.value, this.state.etherValue),
+                text: this.state.description,
                 from: account
             })
             this.setState({
                 contributions: contributions,
                 value: '',
                 description: '',
-                totalValue: parseInt(this.state.totalValue) + contribValue
+                totalValue: parseInt(this.state.totalValue) + parseInt(web3.utils.toWei(this.state.value, this.state.etherValue)),
+                gas: contributeSendResult.gasUsed,
+                confirmModal: false,
+                contributeButton: false
             })
         } else {
             this.setState({ error: "error" })
@@ -198,59 +195,81 @@ class CampaignDetail extends React.Component {
 
     async finishCampaign() {
         const crowdfundingCampaign = this.props.drizzle.contracts[this.props.name];
-        let campaignOwnerBalanceBefore = await web3.eth.getBalance(this.state.campaignOwnerAddress);
-        console.log(campaignOwnerBalanceBefore);
-        let finishCampaign = await crowdfundingCampaign.methods.finishCampaign().send({
-            gas: 1000000,
-            from: this.state.campaignOwnerAddress
-        });
-        console.log(finishCampaign);
-
-        let campaignOwnerBalanceAfter = await web3.eth.getBalance(this.state.campaignOwnerAddress);
-        console.log(campaignOwnerBalanceAfter);
-        console.log(parseInt(campaignOwnerBalanceAfter) - parseInt(campaignOwnerBalanceBefore));
+        let finishCampaignFunction = await crowdfundingCampaign.methods.finishCampaign()
+        let finishCampaignResult = await finishCampaignFunction.call();
+        console.log(finishCampaignResult);
+        if (finishCampaignResult) {
+            await finishCampaignFunction.send({
+                gas: 1000000,
+                from: this.state.campaignOwnerAddress
+            });
+        }
         let campaignStatus = await this.getCampaignValue("campaignStatus");
-        console.log("Status:", campaignStatus);
-        let campaignAddressBalance = await web3.eth.getBalance(this.state.campaignAddress);
-        console.log(campaignAddressBalance);
-        this.setState({ campaignStatus: campaignStatus, finishButton: false });
+        this.setState({ campaignStatus: campaignStatus, confirmModal: false, finishButton: false });
     }
 
     cancelCampaignButton(e) {
         e.preventDefault();
-        this.setState({error: '', confirmModal: true, cancelButton: true, confirmModalText: "Do you want to cancel this campaign ?"});
+        this.setState({
+            error: '',
+            confirmModal: true,
+            cancelButton: true,
+            confirmModalText: "Do you want to cancel this campaign ?" });
     }
 
     async cancelCampaign() {
         const crowdfundingCampaign = this.props.drizzle.contracts[this.props.name];
-        let cancelCampaign = await crowdfundingCampaign.methods.cancelCampaign().send({
-            gas: 1000000,
-            from: this.state.campaignOwnerAddress
-        });
-        console.log(cancelCampaign);
+        let cancelCampaignFunction = await crowdfundingCampaign.methods.cancelCampaign();
+        let cancelCampaignResult = await cancelCampaignFunction.call();
+        console.log(cancelCampaignResult);
+        if (cancelCampaignResult) {
+            cancelCampaignFunction.send({
+                gas: 1000000,
+                from: this.state.campaignOwnerAddress
+            });
+        }
         let campaignStatus = await this.getCampaignValue("campaignStatus");
-        this.setState({ campaignStatus: campaignStatus,
-            finishButton: false,
-            cancelButton: false,
-            withdrawButton: false,
-            contributeButton: false
+        this.setState({
+            campaignStatus: campaignStatus,
+            confirmModal: false,
+            cancelButton: false
         });
     }
 
-    async withdrawContribution(e) {
+    withdrawContributionButton(e) {
         e.preventDefault();
+        this.setState({
+            error: '',
+            confirmModal: true,
+            withdrawButton: true,
+            confirmModalText: "Do you want to witdhraw from this campaign ?" });
+    }
+
+    async withdrawContribution() {
+        const crowdfundingCampaign = this.props.drizzle.contracts[this.props.name];
         let contributionsCheckBoxs = this.state.contributionsCheckBoxs;
         let contributions = this.state.contributions;
-        console.log(contributionsCheckBoxs);
-        contributionsCheckBoxs.forEach(element => {
-            console.log(contributions[element]);
-            contributions.splice(element, 1);
+        for (let i = 0; i < contributionsCheckBoxs.length; i++) {
+            let withdrawContributionFunction = await crowdfundingCampaign.methods.withdrawContribution2(contributionsCheckBoxs[i]).send({
+                gas: 1000000,
+                from: contributions[contributionsCheckBoxs[i]].from
+            });
+            console.log(withdrawContributionFunction)
+            let deleteResponse = await fetch('http://localhost:5000/contribution/contribution_id=' + contributions[contributionsCheckBoxs[i]].contribution_id, {
+                method: 'DELETE', headers: {'Content-Type': 'application/json'}
+            })
+            console.log(deleteResponse);
+            contributions.splice(contributionsCheckBoxs[i], 1);
+        }
+        let totalValue = await this.getCampaignValue("totalValue");
+
+        this.setState({
+            contributions: contributions,
+            totalValue: parseInt(totalValue),
+            contributionsCheckBoxs: [],
+            confirmModal: false,
+            withdrawButton: false
         })
-        this.setState({ contributions: contributions, contributionsCheckBoxs: [] })
-        // const crowdfundingCampaign = this.props.drizzle.contracts["CrowdfundingCampaign"];
-        // let withdrawContributionFunc = await crowdfundingCampaign.methods.withdrawContribution.call();
-        // let withdrawContributionResult = await withdrawContributionFunc.call();
-        // console.log(withdrawContributionResult);
     }
 
     async openConfirmModal() {
@@ -263,7 +282,6 @@ class CampaignDetail extends React.Component {
         if (this.state.withdrawButton)
             await this.withdrawContribution();
     }
-
 
     closeConfirmModal() {
         this.setState({confirmModal: false});
@@ -283,15 +301,12 @@ class CampaignDetail extends React.Component {
         let output = [];
         let dataset = this.state.contributions;
         for (let i = 0; i < dataset.length; i++) {
-            let value = parseInt(dataset[i].value) >= 1000000000
-                ? parseInt(dataset[i].value) / 1000000000 + " Gwei"
-                : dataset[i].value
             if (this.state.user.user_id === this.state.campaignOwner) {
                 output.push(
                     <tr key={'row-' + i} id={'row-' + i}>
                         <td>{ dataset[i].from }</td>
                         <td>{ dataset[i].text }</td>
-                        <td>{ value }</td>
+                        <td>{ this.renderEtherValue(dataset[i].value) }</td>
                     </tr>)
             } else {
                 output.push(
@@ -301,14 +316,27 @@ class CampaignDetail extends React.Component {
                                         onChange={() => this.handleOnChange(i)}/></td>
                         <td>{ dataset[i].from }</td>
                         <td>{ dataset[i].text }</td>
-                        <td>{ value }</td>
+                        <td>{ this.renderEtherValue(dataset[i].value) }</td>
                     </tr>)
             }
         }
         return output;
     }
 
+    renderEtherValue(input) {
+        if (typeof input == "number")
+            input = input.toString()
+        let inputInEther = web3.utils.fromWei(input, 'ether')
+        if (parseInt(inputInEther) >= 1)
+            return inputInEther + " Ether"
+        let inputInGwei = web3.utils.fromWei(input, 'gwei')
+        if (parseInt(inputInGwei) >= 1)
+            return inputInGwei + " Gwei"
+        return input + " Wei"
+    }
+
     render() {
+        console.log()
         const confirmModal = this.state.confirmModal ? (
             <ConfirmModal
                 show={this.state.confirmModal}
@@ -317,15 +345,19 @@ class CampaignDetail extends React.Component {
                 text={this.state.confirmModalText}
             />
         ) : null;
-        const contribute = this.state.campaignStatus && this.state.user && this.state.campaignOwner !== this.state.user.user_id ?
+        const contributeForm = this.state.campaignStatus && this.state.user && this.state.campaignOwner !== this.state.user.user_id ?
             <Form id="contribute" className="mt-3" onSubmit={this.contributeButton.bind(this)}>
                 <Form.Group className="mb-3 row" controlId="formBasicValue">
                     <Col md={6}>
-                        <Form.Control type="number" placeholder="Enter value in Gwei" value={this.state.value}
+                        <Form.Control type="number" placeholder="Enter value" value={this.state.value}
                             onChange={(e) => this.setState({value: e.target.value})}/>
                     </Col>
-                    <Col md={4}>
-                        <Form.Label className="pt-2">Gwei</Form.Label>
+                    <Col md={3}>
+                        <Form.Select onChange={(e) => this.setState({etherValue: e.target.value})}>
+                            <option value="wei">Wei</option>
+                            <option value="gwei">Gwei</option>
+                            <option value="ether">Ether</option>
+                        </Form.Select>
                     </Col>
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formBasicDetail">
@@ -338,23 +370,6 @@ class CampaignDetail extends React.Component {
             </Form> : null
 
         let progress = (this.state.totalValue / this.state.goalValue * 100).toFixed(2)
-        const progressBar = this.state.totalValue < this.state.goalValue ?
-            <ProgressBar variant="primary" className="mt-2" now={parseFloat(progress)} label={`${progress}%`} /> :
-            <ProgressBar variant="success" className="mt-2" now={parseFloat(progress)} label={`${progress}%`} />;
-
-        let campaignStatus = this.state.campaignStatus === "active" ? <Badge pill bg="primary">Active</Badge> :
-            this.state.campaignStatus === "finished" ? <Badge pill bg="success">Successful</Badge> :
-                <Badge pill bg="danger">Canceled</Badge>
-
-        const ownerOperations = this.state.user && this.state.campaignOwner === this.state.user.user_id ?
-            <>
-                <Button variant="outline-dark" className="mt-3 me-3"
-                        disabled={this.state.campaignStatus === "canceled" || this.state.campaignStatus === "finished"}
-                        onClick={this.finishCampaignButton.bind(this)} >Finish Campaign</Button>
-                <Button variant="dark" className="mt-3 me-3"
-                        disabled={this.state.campaignStatus === "canceled" || this.state.campaignStatus === "finished"}
-                        onClick={this.cancelCampaignButton.bind(this)}>Cancel Campaign</Button>
-            </> : null
 
         const contributionsWallet = this.state.user && this.state.contributions.length && this.state.campaignStatus
             ? this.state.campaignOwner === this.state.user.user_id  ?
@@ -362,7 +377,7 @@ class CampaignDetail extends React.Component {
                     <thead><tr><th>address</th><th>text</th><th>value</th></tr></thead>
                     <tbody>{this.showContributions()}</tbody>
                 </Table> :
-            <Form id="withdraw" onSubmit={this.withdrawContribution.bind(this)}>
+            <Form id="withdraw" onSubmit={this.withdrawContributionButton.bind(this)}>
                 <Table className="mt-2 mb-2" striped bordered hover size="sm">
                     <thead><tr><th/><th>address</th><th>text</th><th>value</th></tr></thead>
                     <tbody>{this.showContributions()}</tbody>
@@ -374,21 +389,34 @@ class CampaignDetail extends React.Component {
             <Container>
                 {confirmModal}
                 <p><strong>Address: </strong>{ this.state.campaignAddress }</p>
-                <p><strong>Status: </strong>{ campaignStatus }</p>
+                <p><strong>Status: </strong>{
+                    this.state.campaignStatus === "active" ? <Badge pill bg="primary">Active</Badge> :
+                    this.state.campaignStatus === "finished" ? <Badge pill bg="success">Successful</Badge> :
+                        <Badge pill bg="danger">Canceled</Badge> }</p>
                 <p><strong>Owner: </strong>{ this.state.campaignOwnerMail }<br/>
                     {this.state.campaignOwnerAddress}</p>
-                <p><strong>Total Value: </strong>{ this.state.totalValue / 1000000 } Gwei</p>
-                <p><strong>Pledged Goal: </strong>{ this.state.goalValue / 1000000 } Gwei</p>
+                <p><strong>Total Value: </strong>{ this.renderEtherValue(this.state.totalValue) }</p>
+                <p><strong>Pledged Goal: </strong>{ this.renderEtherValue(this.state.goalValue) }</p>
                 <Card>
                     <Card.Body>
                         <Card.Title>Description</Card.Title>
                         <Card.Text>{ this.state.campaignDescription}</Card.Text>
                     </Card.Body>
                 </Card>
-                {progressBar}
-                {contribute}
+                { this.state.totalValue < this.state.goalValue ?
+                    <ProgressBar variant="primary" className="mt-2" now={parseFloat(progress)} label={`${progress}%`} /> :
+                    <ProgressBar variant="success" className="mt-2" now={parseFloat(progress)} label={`${progress}%`} /> }
+                {contributeForm}
                 {this.state.gas ? <Alert variant='primary' className="mt-2 mb-2">Used Gas: {this.state.gas}</Alert> : null}
-                {ownerOperations}
+                { this.state.user && this.state.campaignOwner === this.state.user.user_id ?
+                    <>
+                        <Button variant="outline-dark" className="mt-3 me-3"
+                                disabled={this.state.campaignStatus === "canceled" || this.state.campaignStatus === "finished"}
+                                onClick={this.finishCampaignButton.bind(this)} >Finish Campaign</Button>
+                        <Button variant="dark" className="mt-3 me-3"
+                                disabled={this.state.campaignStatus === "canceled" || this.state.campaignStatus === "finished"}
+                                onClick={this.cancelCampaignButton.bind(this)}>Cancel Campaign</Button>
+                    </> : null }
                 {contributionsWallet}
                 <br/>
                 {this.state.error ? <Alert variant='danger'>{this.state.error}</Alert> : null}

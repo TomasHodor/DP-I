@@ -5,26 +5,26 @@ contract CrowdfundingCampaign {
     string public campaignName;
 
     struct Contribution {
-        uint value;
+        uint256 value;
         address payable contributor;
         string description;
     }
 
     struct Contribution2 {
-        uint value;
+        uint256 value;
         uint index;
         string description;
     }
 
     string public campaignStatus = "nonactive";
-    uint public totalValue;
-    uint public goalValue;
+    uint256 public totalValue;
+    uint256 public goalValue;
     Contribution [] public contributions;
     mapping (address => Contribution2[]) public contributions2;
     address payable public ownerAddress;
     mapping (address => uint256) public balances;
 
-    constructor(string memory name, uint goal, address payable creator) public {
+    constructor(string memory name, uint256 goal, address payable creator) public {
         campaignName = name ;
         goalValue = goal;
         ownerAddress = creator;
@@ -36,10 +36,10 @@ contract CrowdfundingCampaign {
         contributeCampaign("");
     }
 
-    event logContributeMoney(address indexed _from,  address indexed _to, uint _value);
-    event logReturnContribution(address indexed _from, address indexed _to, uint _value);
+    event logContributeMoney(address indexed _from,  address indexed _to, uint256 _value);
+    event logReturnContribution(address indexed _from, address indexed _to, uint256 _value);
     event logWithdrawalTransferSuccess(bool success, address payable _to);
-    event logContractBalance(uint balance);
+    event logContractBalance(uint256 balance);
     event logAddress(address add);
     event logContributions2length(uint length);
 
@@ -101,23 +101,31 @@ contract CrowdfundingCampaign {
     }
 
     function withdrawContribution2(uint index) public payable returns(bool) {
-        Contribution2 memory contribution = contributions2[msg.sender][index];
+        Contribution2[] memory contributions2array = contributions2[msg.sender];
+        if (contributions2array.length > 0 && contributions2array.length > index) {
+            Contribution2 memory contribution = contributions2array[index];
 
-        bool success = msg.sender.send(contribution.value);
-        emit logWithdrawalTransferSuccess(success, msg.sender);
-        if (success) {
-            emit logReturnContribution(address(this), msg.sender, contribution.value);
+            bool success = msg.sender.send(contribution.value);
+            emit logWithdrawalTransferSuccess(success, msg.sender);
+            if (success) {
+                emit logReturnContribution(address(this), msg.sender, contribution.value);
 
-            delete contributions[index];
-            totalValue -= contribution.value;
+                for (uint i = index; i < contributions2[msg.sender].length - 1; i++){
+                    contributions2[msg.sender][i] = contributions2[msg.sender][i + 1];
+                }
+                delete contributions2[msg.sender][contributions2[msg.sender].length - 1];
+                contributions2[msg.sender].length--;
+                totalValue -= contribution.value;
+            }
+            return success;
         }
-        return success;
+        return false;
     }
 
     function cancelCampaign() public {
         campaignStatus = "canceled";
         for (uint i = 0; i < contributions.length; i++) {
-            uint contractBalance = address(this).balance;
+            uint256 contractBalance = address(this).balance;
             emit logContractBalance(contractBalance);
             Contribution storage contribution = contributions[i];
             bool success = contribution.contributor.send(contribution.value);
@@ -127,7 +135,7 @@ contract CrowdfundingCampaign {
     }
 
     function finishCampaign() public returns(bool) {
-        uint contractBalance = address(this).balance;
+        uint256 contractBalance = address(this).balance;
         emit logContractBalance(contractBalance);
         if (keccak256(bytes(campaignStatus)) == keccak256(bytes("active")) && address(this).balance >= goalValue) {
             bool success = msg.sender.send(totalValue);

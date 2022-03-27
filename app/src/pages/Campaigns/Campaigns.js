@@ -127,17 +127,16 @@ class Campaigns extends React.Component {
             <Container>
                 {campaignModal}
                 {newCampaignModal}
-                <div className="mt-2">
-                {this.state.user ?
-                <Button variant="secondary" onClick={this.showNewCampaignModal.bind(this)}>
-                    New campaign
-                </Button> : null
-                }
-                <Table striped bordered hover size="sm">
+                { this.state.user ?
+                    <Button
+                        variant="secondary" className="mt-2"
+                        onClick={this.showNewCampaignModal.bind(this)}>New campaign
+                    </Button> : null }
+                <Table striped bordered hover className="mt-2" size="sm">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Name</th>
+                            <th>Campaign Name</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -145,7 +144,6 @@ class Campaigns extends React.Component {
                     {this.showData()}
                     </tbody>
                 </Table>
-                </div>
             </Container>
         );
     }

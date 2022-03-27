@@ -191,6 +191,21 @@ app.post('/contribution', (req, res) => {
         });
 });
 
+app.delete('/contribution/contribution_id=:contribution_id', (req, res) => {
+    const { contribution_id } = req.params;
+    db('contribution')
+        .where('contribution_id', '=', contribution_id)
+        .del()
+        .then((response) => {
+            console.log(response)
+            console.log('Contribution Deleted');
+            return res.json({ "deleted": true });
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
 const port = process.env.PORT || 5000;
 
 app.listen(port, () => console.log(`Server running on port ${port}, http://localhost:${port}`));
