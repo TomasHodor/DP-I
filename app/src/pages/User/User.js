@@ -16,7 +16,7 @@ class User extends React.Component {
         };
     }
 
-    handleUserModal(event) {
+    handleUserModal() {
         if (this.state.user_id)
             this.setState({ userModal: !this.state.userModal });
     }

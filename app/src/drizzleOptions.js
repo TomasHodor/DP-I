@@ -1,13 +1,13 @@
-import Web3 from "web3";
+import web3 from "./web3instance"
 
 const options = {
   web3: {
     block: false,
-    customProvider: new Web3("ws://localhost:7545"),
+    customProvider: web3,
   },
   contracts: [],
   events: {
-    CrowdfundingCampaign: ["logContributeMoney"],
+    CrowdfundingCampaign: ["logContributeMoney", "logContributions2length"],
   },
 };
 

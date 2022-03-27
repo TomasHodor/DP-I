@@ -6,8 +6,8 @@ contract CrowdfundingCampaignFactory {
 
     address[] public deployedCampaigns;
 
-    function createCampaign(string memory name, uint minimum, address payable owner) public returns (address) {
-        address newCampaign = address(new CrowdfundingCampaign(name, minimum, owner));
+    function createCampaign(string memory name, uint goal, address payable owner) public returns (address) {
+        address newCampaign = address(new CrowdfundingCampaign(name, goal, owner));
         deployedCampaigns.push(newCampaign);
 
         return newCampaign;

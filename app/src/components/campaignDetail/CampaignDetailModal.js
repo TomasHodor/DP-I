@@ -15,7 +15,7 @@ class CampaignDetailModal extends React.Component {
 
     handleClose() {
         this.setState({ show: false });
-        this.props.modalHandler();
+        this.props.closeHandler();
     }
 
     render() {

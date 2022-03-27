@@ -10,12 +10,18 @@ contract CrowdfundingCampaign {
         string description;
     }
 
-    bool public campaignStatus = false;
+    struct Contribution2 {
+        uint value;
+        uint index;
+        string description;
+    }
+
+    string public campaignStatus = "nonactive";
     uint public totalValue;
     uint public goalValue;
     Contribution [] public contributions;
+    mapping (address => Contribution2[]) public contributions2;
     address payable public ownerAddress;
-    mapping(address => bool) contributors;
     mapping (address => uint256) public balances;
 
     constructor(string memory name, uint goal, address payable creator) public {
@@ -23,7 +29,7 @@ contract CrowdfundingCampaign {
         goalValue = goal;
         ownerAddress = creator;
         totalValue = 0;
-        campaignStatus = true;
+        campaignStatus = "active";
     }
 
     function () external payable {
@@ -35,6 +41,7 @@ contract CrowdfundingCampaign {
     event logWithdrawalTransferSuccess(bool success, address payable _to);
     event logContractBalance(uint balance);
     event logAddress(address add);
+    event logContributions2length(uint length);
 
     function contribute(string memory description) public payable returns(bool) {
         Contribution memory newContribution = Contribution({
@@ -46,27 +53,35 @@ contract CrowdfundingCampaign {
         bool success = ownerAddress.send(msg.value);
         if (success) {
             contributions.push(newContribution);
-            contributors[msg.sender] = true;
             totalValue += msg.value;
         }
         return success;
     }
 
     function contributeCampaign(string memory description) public payable returns(bool) {
-        Contribution memory newContribution = Contribution({
-            description: description,
-            value: msg.value,
-            contributor: msg.sender
-        });
-        // address payable campaignPayableAddress = address(uint160(address(this)));
-        // bool success = campaignPayableAddress.send(msg.value);
+        if (keccak256(bytes(campaignStatus)) == keccak256(bytes("active"))) {
+            Contribution memory newContribution = Contribution({
+                description: description,
+                value: msg.value,
+                contributor: msg.sender
+            });
+            contributions.push(newContribution);
 
-        balances[msg.sender] += msg.value;
-        contributions.push(newContribution);
-        contributors[msg.sender] = true;
-        totalValue += msg.value;
-        emit logContributeMoney(msg.sender, address(this), msg.value);
-        return true;
+            Contribution2 memory newContribution2 = Contribution2({
+                index: contributions2[msg.sender].length,
+                description: description,
+                value: msg.value
+            });
+            emit logContributions2length(contributions2[msg.sender].length);
+            contributions2[msg.sender].push(newContribution2);
+
+            balances[msg.sender] += msg.value;
+            totalValue += msg.value;
+            emit logContributeMoney(msg.sender, address(this), msg.value);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function withdrawContribution(uint index) public payable returns(bool) {
@@ -80,58 +95,64 @@ contract CrowdfundingCampaign {
             emit logReturnContribution(address(this), contributorAddress, contribution.value);
 
             delete contributions[index];
-            contributors[contribution.contributor] = false;
             totalValue -= contribution.value;
         }
         return success;
     }
 
-    function cancelCampaign() public payable {
-        campaignStatus = false;
+    function withdrawContribution2(uint index) public payable returns(bool) {
+        Contribution2 memory contribution = contributions2[msg.sender][index];
+
+        bool success = msg.sender.send(contribution.value);
+        emit logWithdrawalTransferSuccess(success, msg.sender);
+        if (success) {
+            emit logReturnContribution(address(this), msg.sender, contribution.value);
+
+            delete contributions[index];
+            totalValue -= contribution.value;
+        }
+        return success;
+    }
+
+    function cancelCampaign() public {
+        campaignStatus = "canceled";
         for (uint i = 0; i < contributions.length; i++) {
+            uint contractBalance = address(this).balance;
+            emit logContractBalance(contractBalance);
             Contribution storage contribution = contributions[i];
-            emit logReturnContribution(address(this), contribution.contributor, contribution.value);
             bool success = contribution.contributor.send(contribution.value);
+            emit logReturnContribution(address(this), contribution.contributor, contribution.value);
             require(success);
         }
     }
 
-    function finishCampaign() payable external returns(bool) {
+    function finishCampaign() public returns(bool) {
         uint contractBalance = address(this).balance;
         emit logContractBalance(contractBalance);
-        //require(msg.sender == address(this));
-
-        if (address(this).balance > goalValue) {
-            campaignStatus = false;
-//            for (uint i = 0; i < contributions.length; i++) {
-//                msg.sender = address(this);
-//                Contribution storage contribution = contributions[i];
-//                balances[contribution.contributor] -= contribution.value;
-//                bool success = ownerAddress.send(contribution.value);
-//                emit returnContribution(msg.sender, ownerAddress, contribution.value);
-//            }
-            bool success = ownerAddress.send(contractBalance);
-            emit logContributeMoney(msg.sender, ownerAddress, contractBalance);
-            return success;
+        if (keccak256(bytes(campaignStatus)) == keccak256(bytes("active")) && address(this).balance >= goalValue) {
+            bool success = msg.sender.send(totalValue);
+            if (success) {
+                campaignStatus = "finished";
+                emit logContributeMoney(address(this), msg.sender, totalValue);
+                contractBalance = address(this).balance;
+                emit logContractBalance(contractBalance);
+                return success;
+            }
         }
         return false;
-    }
-
-    function getContribution(address addr) public view returns(bool) {
-        return contributors[addr];
     }
 
     function getNumberOfContributions() public view returns(uint) {
         return contributions.length;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == ownerAddress);
-        _;
+    function getNumberOfAddressContribution(address contributorAddress) public view returns(uint) {
+        return contributions2[contributorAddress].length;
     }
 
-    modifier onlyContributor() {
-        require(contributors[msg.sender]);
-        _;
+    function activateCampaign() public {
+        if (keccak256(bytes(campaignStatus)) == keccak256(bytes("canceled"))) {
+            campaignStatus = "active";
+        }
     }
 }

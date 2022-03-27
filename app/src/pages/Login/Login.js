@@ -74,10 +74,7 @@ class Login extends React.Component {
                         <Button as="input" type="submit" value="Sign in" variant="dark" size="lg"/>
                     </div>
                     <br/>
-                    {this.state.error ?
-                        <Alert variant='danger'>
-                            {this.state.error}
-                        </Alert> : null}
+                    {this.state.error ? <Alert variant='danger'>{this.state.error}</Alert> : null}
                     {this.state.user_id ? <Navigate to="/campaigns" replace /> : null}
                 </Form>
             </Container>

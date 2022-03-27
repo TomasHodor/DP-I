@@ -11,13 +11,13 @@ contract('CrowdfundingCampaign', accounts => {
         let goal = await campaign.goalValue.call();
         let totalValue = await campaign.totalValue.call();
         let numberOfContributions = await campaign.getNumberOfContributions.call();
-        let campaignStatus = await campaign.status.call();
+        let campaignStatus = await campaign.campaignStatus.call();
 
         assert.equal(campaignName.valueOf(), name);
         assert.equal(goal.valueOf(), goalValue);
         assert.equal(totalValue.valueOf(), 0);
         assert.equal(numberOfContributions.valueOf(), 0);
-        assert.equal(campaignStatus.valueOf(), true);
+        assert.equal(campaignStatus.valueOf(), "active");
     });
 })
 

@@ -54,8 +54,6 @@ contract('CrowdfundingCampaign', async accounts => {
 
         await campaign.contribute(contrib1Text, {value: contrib1Value, from: contrib1Account});
 
-        let contributor = await campaign.getContribution.call(contrib1Account)
-        assert.equal(contributor.valueOf(), true);
         let contribution1 = await campaign.contributions.call(0);
         assert.equal(contribution1.contributor.valueOf(), contrib1Account);
         assert.equal(contribution1.value.valueOf(), contrib1Value);
@@ -64,13 +62,8 @@ contract('CrowdfundingCampaign', async accounts => {
         let balanceFirstContrib = await web3.eth.getBalance(ownerAddress.valueOf());
         assert.equal(parseInt(balanceFirstContrib), parseInt(balanceOwner) + parseInt(contrib1Value));
 
-        let falseContributor = await campaign.getContribution.call(contrib2Account)
-        assert.equal(falseContributor.valueOf(), false);
-
         await campaign.contribute(contrib2Text, {value: contrib2Value, from: contrib2Account});
 
-        let contributor2 = await campaign.getContribution.call(contrib2Account)
-        assert.equal(contributor2.valueOf(), true);
         let contribution2 = await campaign.contributions.call(1);
         assert.equal(contribution2.contributor.valueOf(), contrib2Account);
         assert.equal(contribution2.value.valueOf(), contrib2Value);

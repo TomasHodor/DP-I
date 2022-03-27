@@ -18,30 +18,29 @@ class NewCampaignModal extends React.Component {
 
     handleClose() {
         this.setState({ show: false });
-        this.props.modalHandler();
+        this.props.closeHandler();
     }
 
     render() {
         return (
-            <Modal centered size="lg" show={this.state.show} onHide={this.handleClose}>
-                <DrizzleContext.Consumer>
-                    {drizzleContext => {
-                        const {drizzle, drizzleState, initialized} =  drizzleContext;
-
-                        if (!initialized) {
-                            return "Loading..."
-                        }
-
-                        return (
-                            <CampaignCreation
-                                drizzle={drizzle}
-                                drizzleState={drizzleState}
-                                user_id={this.props.user_id}
-                                handleClose={this.handleClose}
-                            />
-                        )
-                    }}
-                </DrizzleContext.Consumer>
+            <Modal centered size="lg" show={this.state.show} onHide={this.handleClose} >
+                <Modal.Body>
+                    <DrizzleContext.Consumer>
+                        {drizzleContext => {
+                            const {drizzle, drizzleState, initialized} =  drizzleContext;
+                            if (!initialized) {
+                                return "Loading..."
+                            }
+                            return (
+                                <CampaignCreation
+                                    drizzle={drizzle} drizzleState={drizzleState}
+                                    user_id={this.props.user_id}
+                                    handleClose={this.handleClose}
+                                />
+                            )
+                        }}
+                    </DrizzleContext.Consumer>
+                </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={this.handleClose}>
                         Close
