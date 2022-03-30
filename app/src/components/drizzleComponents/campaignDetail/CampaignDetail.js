@@ -133,7 +133,6 @@ class CampaignDetail extends React.Component {
 
     async contributeCampaign() {
         const accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
-        console.log(accounts)
         if (accounts.length === 0) {
             this.setState({ error: 'No MetaMask accounts' });
             return;
@@ -251,8 +250,7 @@ class CampaignDetail extends React.Component {
         let contributions = this.state.contributions;
         for (let i = 0; i < contributionsCheckBoxs.length; i++) {
             let withdrawContributionFunction = await crowdfundingCampaign.methods.withdrawContribution2(contributionsCheckBoxs[i]).send({
-                gas: 1000000,
-                from: contributions[contributionsCheckBoxs[i]].from
+                gas: 1000000, from: contributions[contributionsCheckBoxs[i]].from
             });
             console.log(withdrawContributionFunction)
             let deleteResponse = await fetch('http://localhost:5000/contribution/contribution_id=' + contributions[contributionsCheckBoxs[i]].contribution_id, {
@@ -336,7 +334,6 @@ class CampaignDetail extends React.Component {
     }
 
     render() {
-        console.log()
         const confirmModal = this.state.confirmModal ? (
             <ConfirmModal
                 show={this.state.confirmModal}

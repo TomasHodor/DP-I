@@ -52,11 +52,9 @@ class CampaignCreation extends React.Component {
         let web3Contract = new web3.eth.Contract(CrowdfundingCampaign.abi, account);
         let result = await web3Contract.deploy({
             data: CrowdfundingCampaign.bytecode,
-            arguments: [this.state.name, web3.utils.toWei(this.state.goal, this.state.etherValue), account]
+            arguments: [this.state.name, [web3.utils.toWei(this.state.goal, this.state.etherValue)], account]
         }).send({
-            from: account,
-            gas: 3000000,
-            gasPrice: '20000000000' });
+            from: account, gas: 3000000, gasPrice: '20000000000' });
         console.log(result);
         if (result) {
             let postResponse = await fetch('http://localhost:5000/campaign', {
