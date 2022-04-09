@@ -10,7 +10,7 @@ contract('CrowdfundingCampaign', async accounts => {
         let contrib2Account = accounts[4];
 
         let campaign = await CrowdfundingCampaign.new("TestWithdraw", web3.utils.toWei('7000', 'gwei'), accounts[0]);
-        assert.equal(await campaign.getNumberOfContributions.call(), 0);
+        assert.equal(await campaign.getNumberOfContributors(), 0);
         let acc1BalanceFirst = await web3.eth.getBalance(contrib1Account);
         // 2 contributions
         await campaign.contributeCampaign(contrib1Text, {value: contrib1Value, from: contrib1Account});
@@ -20,15 +20,15 @@ contract('CrowdfundingCampaign', async accounts => {
         console.log("Campaigns balance:", CampaignAddressBalance);
 
         // compare totalValue
-        let totalValue = await campaign.totalValue.call();
+        let totalValue = await campaign.totalValue();
         assert.equal(totalValue.valueOf(), parseInt(contrib1Value) + parseInt(contrib2Value));
         // account1 before withdraw
         let acc1BalanceBefore = await web3.eth.getBalance(contrib1Account);
         // withdraw contribution
-        let trans = await campaign.withdrawContribution2(0, {from: contrib1Account, gas: 100000});
+        let trans = await campaign.withdrawContribution(0, {from: contrib1Account, gas: 100000});
         // console.log(trans.receipt)
         // compare totalValue
-        totalValue = await campaign.totalValue.call();
+        totalValue = await campaign.totalValue();
         assert.equal(totalValue.valueOf(), contrib2Value);
         CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
         console.log("Campaigns balance:      ", CampaignAddressBalance);
@@ -52,7 +52,7 @@ contract('CrowdfundingCampaign', async accounts => {
         let contrib2Account = accounts[4];
 
         let campaign = await CrowdfundingCampaign.new("TestWithdraw2", web3.utils.toWei('30', 'gwei'), accounts[0]);
-        assert.equal(await campaign.getNumberOfContributions.call(), 0);
+        assert.equal(await campaign.getNumberOfContributors(), 0);
         // 2 contributions
         await campaign.contributeCampaign(contrib1Text, {value: contrib1Value, from: contrib1Account});
         await campaign.contributeCampaign(contrib2Text, {value: contrib2Value, from: contrib2Account});
@@ -61,18 +61,18 @@ contract('CrowdfundingCampaign', async accounts => {
         console.log("Campaigns balance:", CampaignAddressBalance);
 
         // compare totalValue
-        let totalValue = await campaign.totalValue.call();
+        let totalValue = await campaign.totalValue();
         assert.equal(totalValue.valueOf(), parseInt(contrib1Value) + parseInt(contrib2Value));
         // account1 before withdraw
         let acc1Balance = await web3.eth.getBalance(accounts[1]);
         console.log("Accounts[1] balance:", acc1Balance);
         // withdraw contribution
-        let trans = await campaign.withdrawContribution2(0, {from: accounts[1], gas: 100000});
+        let trans = await campaign.withdrawContribution(0, {from: accounts[1], gas: 100000});
         acc1Balance = await web3.eth.getBalance(accounts[1]);
         console.log("Accounts[1] balance:", acc1Balance);
         // console.log(trans.receipt)
         // compare totalValue
-        totalValue = await campaign.totalValue.call();
+        totalValue = await campaign.totalValue();
         assert.equal(totalValue.valueOf(), web3.utils.toWei('30', 'gwei'));
         CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
         console.log("Campaigns balance:", CampaignAddressBalance);
@@ -88,7 +88,7 @@ contract('CrowdfundingCampaign', async accounts => {
         let contrib2Account = accounts[4];
 
         let campaign = await CrowdfundingCampaign.new("TestWithdraw3", web3.utils.toWei('30', 'gwei'), accounts[0]);
-        assert.equal(await campaign.getNumberOfContributions.call(), 0);
+        assert.equal(await campaign.getNumberOfContributors(), 0);
         // 2 contributions
         await campaign.contributeCampaign(contrib1Text, {value: contrib1Value, from: contrib1Account});
         await campaign.contributeCampaign(contrib2Text, {value: contrib2Value, from: contrib2Account});
@@ -97,18 +97,18 @@ contract('CrowdfundingCampaign', async accounts => {
         console.log("Campaigns balance:", CampaignAddressBalance);
 
         // compare totalValue
-        let totalValue = await campaign.totalValue.call();
+        let totalValue = await campaign.totalValue();
         assert.equal(totalValue.valueOf(), parseInt(contrib1Value) + parseInt(contrib2Value));
         // account1 before withdraw
         let acc1Balance = await web3.eth.getBalance(contrib1Account);
         console.log("Accounts[3] balance:", acc1Balance);
         // withdraw contribution
-        let trans = await campaign.withdrawContribution2(1, {from: contrib1Account, gas: 100000});
+        let trans = await campaign.withdrawContribution(1, {from: contrib1Account, gas: 100000});
         acc1Balance = await web3.eth.getBalance(contrib1Account);
         console.log("Accounts[3] balance:", acc1Balance);
         // console.log(trans.receipt)
         // compare totalValue
-        totalValue = await campaign.totalValue.call();
+        totalValue = await campaign.totalValue();
         assert.equal(totalValue.valueOf(), web3.utils.toWei('30', 'gwei'));
         CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
         console.log("Campaigns balance:", CampaignAddressBalance);

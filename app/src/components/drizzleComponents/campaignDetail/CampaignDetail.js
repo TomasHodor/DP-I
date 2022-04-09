@@ -73,43 +73,32 @@ class CampaignDetail extends React.Component {
 
         if (this.state.user) {
             const crowdfundingCampaignMethods = this.props.drizzle.contracts[this.props.name].methods;
+            let apiResponse = null;
             if (this.state.user.user_id === this.state.campaignOwner) {
-                let apiResponse = await fetch('http://localhost:5000/contribution/campaign=' + this.state.campaignId, {
+                apiResponse = await fetch('http://localhost:5000/contribution/campaign=' + this.state.campaignId, {
                     method: 'GET',
                     headers: {'Content-Type': 'application/json'}
                 });
-                let jsonResponse = await apiResponse.json();
-                for (let i = 0; i < jsonResponse.length; i++) {
-                    if (jsonResponse[i].hash) {
-                        let trans = await web3.eth.getTransaction(jsonResponse[i].hash);
-                        let valueTypeFunc = await crowdfundingCampaignMethods.contributions(i);
-                        let contribution = await valueTypeFunc.call();
-                        jsonResponse[i]["value"] = trans.value;
-                        jsonResponse[i]["from"] = trans.from;
-                        jsonResponse[i]["text"] = contribution.description;
-                    }
-                }
-                this.setState({ contributions: jsonResponse })
-            } else {
 
-                let apiResponse = await fetch('http://localhost:5000/contribution/contributor=' + this.state.user.user_id
+            } else {
+                apiResponse = await fetch('http://localhost:5000/contribution/contributor=' + this.state.user.user_id
                     + "&campaign=" + this.state.campaignId, {
                     method: 'GET',
                     headers: {'Content-Type': 'application/json'}
                 });
-                let jsonResponse = await apiResponse.json();
-                for (let i = 0; i < jsonResponse.length; i++) {
-                    if (jsonResponse[i].hash) {
-                        let trans = await web3.eth.getTransaction(jsonResponse[i].hash);
-                        let valueTypeFunc = await crowdfundingCampaignMethods.contributions2(trans.from, i);
-                        let contribution = await valueTypeFunc.call();
-                        jsonResponse[i]["value"] = trans.value;
-                        jsonResponse[i]["from"] = trans.from;
-                        jsonResponse[i]["text"] = contribution.description;
-                    }
-                }
-                this.setState({ contributions: jsonResponse })
             }
+            let jsonResponse = await apiResponse.json();
+            for (let i = 0; i < jsonResponse.length; i++) {
+                if (jsonResponse[i].hash) {
+                    let trans = await web3.eth.getTransaction(jsonResponse[i].hash);
+                    let valueTypeFunc = await crowdfundingCampaignMethods.contributions(trans.from, i);
+                    let contribution = await valueTypeFunc.call();
+                    jsonResponse[i]["value"] = trans.value;
+                    jsonResponse[i]["from"] = trans.from;
+                    jsonResponse[i]["text"] = contribution.description;
+                }
+            }
+            this.setState({ contributions: jsonResponse })
         }
     }
 
@@ -200,8 +189,7 @@ class CampaignDetail extends React.Component {
         console.log(finishCampaignResult);
         if (finishCampaignResult) {
             await finishCampaignFunction.send({
-                gas: 1000000,
-                from: this.state.campaignOwnerAddress
+                gas: 1000000, from: this.state.campaignOwnerAddress
             });
         }
         let campaignStatus = await this.getCampaignValue("campaignStatus");
@@ -250,9 +238,8 @@ class CampaignDetail extends React.Component {
         let contributionsCheckBoxs = this.state.contributionsCheckBoxs;
         let contributions = this.state.contributions;
         for (let i = 0; i < contributionsCheckBoxs.length; i++) {
-            let withdrawContributionFunction = await crowdfundingCampaign.methods.withdrawContribution2(contributionsCheckBoxs[i]).send({
-                gas: 1000000,
-                from: contributions[contributionsCheckBoxs[i]].from
+            let withdrawContributionFunction = await crowdfundingCampaign.methods.withdrawContribution(contributionsCheckBoxs[i]).send({
+                gas: 1000000, from: contributions[contributionsCheckBoxs[i]].from
             });
             console.log(withdrawContributionFunction)
             let deleteResponse = await fetch('http://localhost:5000/contribution/contribution_id=' + contributions[contributionsCheckBoxs[i]].contribution_id, {
@@ -273,14 +260,10 @@ class CampaignDetail extends React.Component {
     }
 
     async openConfirmModal() {
-        if (this.state.finishButton)
-            await this.finishCampaign();
-        if (this.state.cancelButton)
-            await this.cancelCampaign();
-        if (this.state.contributeButton)
-            await this.contributeCampaign();
-        if (this.state.withdrawButton)
-            await this.withdrawContribution();
+        if (this.state.finishButton) await this.finishCampaign();
+        if (this.state.cancelButton) await this.cancelCampaign();
+        if (this.state.contributeButton) await this.contributeCampaign();
+        if (this.state.withdrawButton) await this.withdrawContribution();
     }
 
     closeConfirmModal() {

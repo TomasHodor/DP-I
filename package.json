@@ -8,10 +8,11 @@
   },
   "scripts": {
     "test": "truffle test",
-    "testJsCrowdfundingCampaignInit": "truffle test test/crowdfundingCampaignInit.js",
-    "testJsCrowdfundingCampaignContribute": "truffle test test/crowdfundingCampaignContribute.js",
-    "testJsCrowdfundingCampaignWithdraw": "truffle test test/crowdfundingCampaingnWithdraw.js",
-    "testJsCrowdfundingCampaignFinish": "truffle test test/crowdfundingCampaingnFinish.js",
+    "testJsInit": "truffle test test/testInit.js",
+    "testJsContributeCampaign": "truffle test test/testContributeCampaign.js",
+    "testJsWithdrawContribution": "truffle test test/testWithdrawContribution.js",
+    "testJsFinishCampaign": "truffle test test/testFinishCampaign.js",
+    "testJsCancelCampaign": "truffle test test/testCancelCampaign.js",
     "testSolCrowdfundingCampaign": "truffle test test/TestCrowdfundingCampaign.sol"
   },
   "repository": {

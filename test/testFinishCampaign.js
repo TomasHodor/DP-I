@@ -16,9 +16,9 @@ contract('CrowdfundingCampaign', async accounts => {
         let CampaignAddressBalance = await web3.eth.getBalance(campaign.address);
         assert.equal(parseInt(CampaignAddressBalance), 0);
         console.log("Campaigns balance:", CampaignAddressBalance);
-        assert.equal(await campaign.getNumberOfContributions.call(), 0);
+        assert.equal(await campaign.getNumberOfContributors(), 0);
         // compare campaignStatus
-        let campaignStatus = await campaign.campaignStatus.call();
+        let campaignStatus = await campaign.campaignStatus();
         console.log("Campaigns status:", campaignStatus);
         assert.equal(campaignStatus.valueOf(), "active");
         let ownerBalanceBefore = await web3.eth.getBalance(ownerAccount);
@@ -32,7 +32,7 @@ contract('CrowdfundingCampaign', async accounts => {
         console.log("Campaigns balance:", CampaignAddressBalance);
         assert.equal(parseInt(CampaignAddressBalance), contrib1Value + contrib2Value);
         // compare totalValue
-        let totalValue = await campaign.totalValue.call();
+        let totalValue = await campaign.totalValue();
         assert.equal(totalValue.valueOf(), contrib1Value + contrib2Value);
         // finish campaign
         await campaign.finishCampaign({from: ownerAccount, gas: 1000000});
@@ -41,7 +41,7 @@ contract('CrowdfundingCampaign', async accounts => {
         console.log("Campaigns balance:", CampaignAddressBalance);
         assert.equal(parseInt(CampaignAddressBalance), 0);
         // compare campaignStatus
-        campaignStatus = await campaign.campaignStatus.call();
+        campaignStatus = await campaign.campaignStatus();
         console.log("Campaigns status:", campaignStatus);
         assert.equal(campaignStatus.valueOf(), "finished");
 
@@ -62,11 +62,11 @@ contract('CrowdfundingCampaign', async accounts => {
         let contrib2Account = accounts[2];
 
         let campaign = await CrowdfundingCampaign.deployed();
-        assert.equal(await campaign.getNumberOfContributions.call(), 0);
+        assert.equal(await campaign.getNumberOfContributors(), 0);
         let ownerBalanceBefore = await web3.eth.getBalance(ownerAccount);
 
         // compare campaignStatus
-        let campaignStatus = await campaign.campaignStatus.call();
+        let campaignStatus = await campaign.campaignStatus();
         console.log("Campaigns status:", campaignStatus);
         assert.equal(campaignStatus.valueOf(), "active");
         // 2 contributions
@@ -78,14 +78,14 @@ contract('CrowdfundingCampaign', async accounts => {
         console.log("Campaigns balance:", CampaignAddressBalance);
         assert.equal(parseInt(CampaignAddressBalance), contrib1Value + contrib2Value);
         // compare totalValue
-        let totalValue = await campaign.totalValue.call();
+        let totalValue = await campaign.totalValue();
         assert.equal(totalValue.valueOf(), contrib1Value + contrib2Value);
 
         // finish campaign
         await campaign.finishCampaign({from: ownerAccount, gas: 1000000});
 
         // compare campaignStatus
-        campaignStatus = await campaign.campaignStatus.call();
+        campaignStatus = await campaign.campaignStatus();
         console.log("Campaigns status:", campaignStatus);
         assert.equal(campaignStatus.valueOf(), "finished");
         // compare campaign balance
