@@ -83,7 +83,7 @@ contract CrowdfundingCampaign {
         return false;
     }
 
-    function cancelCampaign() public {
+    function cancelCampaign() public payable {
         campaignStatus = "canceled";
         for (uint i = 0; i < contributors.length; i++) {
             emit logContractBalance(address(this).balance);
@@ -98,7 +98,7 @@ contract CrowdfundingCampaign {
         }
     }
 
-    function finishCampaign() public returns(bool) {
+    function finishCampaign() public payable returns(bool) {
         uint256 contractBalance = address(this).balance;
         emit logContractBalance(contractBalance);
         if (keccak256(bytes(campaignStatus)) == keccak256(bytes("active")) && address(this).balance >= goalValue) {

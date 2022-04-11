@@ -205,6 +205,44 @@ app.delete('/contribution/contribution_id=:contribution_id', (req, res) => {
         });
 });
 
+// const Web3 = require("web3");
+// const CrowdfundingCampaign = require("../src/contracts/CrowdfundingCampaign.json");
+//
+// const network = process.env.ETHEREUM_NETWORK;
+// const infuraProjectId = process.env.INFURA_PROJECT_ID
+// const web3 = new Web3(
+//     new Web3.providers.HttpProvider(
+//         `https://${network}.infura.io/v3/${infuraProjectId}`
+//     )
+// );
+// app.post('/deploy', async (req, res) => {
+//     const {name, account, goal} = req.body;
+//
+//     const signer = web3.eth.accounts.privateKeyToAccount(process.env.SIGNER_PRIVATE_KEY);
+//     web3.eth.accounts.wallet.add(signer);
+//
+//     console.log(name, account, goal)
+//     let web3Contract = new web3.eth.Contract(CrowdfundingCampaign.abi, account);
+//     let deployTx = await web3Contract.deploy({
+//         data: CrowdfundingCampaign.bytecode,
+//         arguments: [name, goal, account]
+//     });
+//     const deployedContract = await deployTx
+//         .send({
+//             from: account,
+//             gas: await deployTx.estimateGas(),
+//         })
+//         .on('error', function (error) {
+//             console.log(error)
+//         })
+//         .on("transactionHash", (txhash) => {
+//             console.log(`Mining deployment transaction ...`);
+//             console.log(`https://${network}.etherscan.io/tx/${txhash}`);
+//         });
+//     console.log(deployedContract.options.address)
+//     return res.json({ contract_address: deployedContract.options.address }); // instance with the new contract address
+// });
+
 const port = process.env.PORT || 5000;
 
 app.listen(port, () => console.log(`Server running on port ${port}, http://localhost:${port}`));

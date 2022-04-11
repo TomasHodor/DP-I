@@ -24,12 +24,23 @@ class App extends React.Component {
         };
     }
 
+    componentDidMount() {
+        const userLocal = localStorage.getItem('CrowdfundingUser');
+        const user = JSON.parse(userLocal)
+        if (user) {
+            this.setState({
+                user: user
+            })
+        }
+    }
+
     login(user) {
         const loggedUser = user !== undefined ? user : null;
         this.setState({user: loggedUser});
     }
 
     logout() {
+        localStorage.removeItem("CrowdfundingUser");
         this.setState({user: null});
     }
 

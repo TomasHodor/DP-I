@@ -2,7 +2,8 @@ import React from 'react';
 import CampaignDetailModal from "../../components/campaignDetail/CampaignDetailModal";
 import NewCampaignModal from "../../components/newCampaign/NewCampaignModal";
 import {Badge, Button, Container, Table} from "react-bootstrap";
-import web3 from "./../../web3instance"
+import {renderEtherValue} from "../../components/utils";
+import web3 from "../../web3Instance"
 import "./Campaigns.css"
 
 import CrowdfundingCampaign from "../../contracts/CrowdfundingCampaign.json";
@@ -96,6 +97,9 @@ class Campaigns extends React.Component {
                                 <Badge pill bg="success">Successful</Badge> :
                                 <Badge pill bg="danger">Canceled</Badge>}
                     </td>
+                    <td>
+                        {renderEtherValue(dataset[i].goalValue)}
+                    </td>
                 </tr>
             )
         }
@@ -138,6 +142,7 @@ class Campaigns extends React.Component {
                             <th>#</th>
                             <th>Campaign Name</th>
                             <th>Status</th>
+                            <th>Goal Value</th>
                         </tr>
                     </thead>
                     <tbody>

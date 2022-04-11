@@ -1,4 +1,4 @@
-import web3 from "./web3instance"
+import web3 from "./web3Instance"
 
 const options = {
   web3: {

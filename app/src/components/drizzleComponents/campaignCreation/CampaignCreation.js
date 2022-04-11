@@ -1,8 +1,10 @@
 import React from "react";
 import {Alert, Button, Col, Container, Form} from "react-bootstrap";
-import web3 from "./../../../web3instance"
+import web3 from "../../../web3Instance"
 import CrowdfundingCampaign from "../../../contracts/CrowdfundingCampaign.json";
 import ConfirmModal from "../../confirmModal/ConfirmModal";
+import nodejs_connection from "../../../nodejsInstance"
+import LoadingModal from "../../loadingModal/LoadingModal";
 
 class CampaignCreation extends React.Component {
 
@@ -14,7 +16,8 @@ class CampaignCreation extends React.Component {
             description: '',
             error: '',
             etherValue: 'wei',
-            confirmModal: false
+            confirmModal: false,
+            loadingModal: false
         };
     }
 
@@ -40,6 +43,7 @@ class CampaignCreation extends React.Component {
     }
 
     async createCampaign() {
+        this.setState({ loadingModal: true })
         let campaignOwner = this.props.user_id;
 
         const accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
@@ -50,28 +54,30 @@ class CampaignCreation extends React.Component {
         const account = accounts[0];
 
         let web3Contract = new web3.eth.Contract(CrowdfundingCampaign.abi, account);
-        let result = await web3Contract.deploy({
+        let deployTx = await web3Contract.deploy({
             data: CrowdfundingCampaign.bytecode,
             arguments: [this.state.name, web3.utils.toWei(this.state.goal, this.state.etherValue), account]
-        }).send({
-            from: account,
-            gas: 3000000,
-            gasPrice: '20000000000' });
-        console.log(result);
-        if (result) {
-            let postResponse = await fetch('http://localhost:5000/campaign', {
+        });
+        const deployedContract = await deployTx
+            .send({from: account, gas: await deployTx.estimateGas()})
+            .on('error', function (error) {
+                this.setState({ error: error.toString(), loadingModal: false });
+            })
+            .on("transactionHash", (txhash) => { console.log(txhash)});
+
+        if (this.state.error === '' && "options" in deployedContract) {
+            let postResponse = await fetch(nodejs_connection + '/campaign', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     owner: campaignOwner,
-                    address: result.options.address,
+                    address: deployedContract.options.address,
                     description: this.state.description
                 })
             });
             let jsonResponse = await postResponse.json();
-            this.setState({ campaign_id: jsonResponse.campaign_id })
+            this.setState({ campaign_id: jsonResponse.campaign_id, loadingModal: false
+            })
             this.props.handleClose();
-        } else {
-            this.setState({ error: result })
         }
     }
 
@@ -84,9 +90,11 @@ class CampaignCreation extends React.Component {
                 text={"Do you want to create campaign " + this.state.name + " ?"}
             />
         ) : null;
+        const loadingModal = this.state.loadingModal ? <LoadingModal show={this.state.loadingModal} /> : null;
         return (
             <Container>
                 {confirmModal}
+                {loadingModal}
                 <h2>Create Campaign</h2>
                 <Form onSubmit={this.handleSubmit}>
                     <Form.Group className="mb-3" controlId="formBasicName">
@@ -115,7 +123,6 @@ class CampaignCreation extends React.Component {
                     </div>
                     {this.state.error ? <Alert variant='danger'>{this.state.error}</Alert> : null}
                 </Form>
-
             </Container>
         )
     }

@@ -3,6 +3,7 @@ import {Button, Form, Container, Alert} from "react-bootstrap"
 import bcrypt from 'bcryptjs'
 import {Navigate} from "react-router-dom";
 import './Login.css';
+import nodejs_connection from "../../nodejsInstance";
 
 class Login extends React.Component {
 
@@ -27,7 +28,7 @@ class Login extends React.Component {
             this.setState({error: "Empty Password"});
             return;
         }
-        fetch('http://localhost:5000/user/' + this.state.email, {
+        fetch(nodejs_connection + '/user/' + this.state.email, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         }).then(response => response.json().then(async data => {
@@ -35,10 +36,11 @@ class Login extends React.Component {
                 const success = await bcrypt.compare(this.state.password, data[0].password);
                 if (success) {
                     this.setState({
-                        user_id: data[0].user_id,
-                        error: null
+                        user_id: data[0].user_id, error: null
                     });
-                    this.props.handleLogin({"user_id": data[0].user_id, "email": this.state.email});
+                    let user = {"user_id": data[0].user_id, "email": this.state.email}
+                    localStorage.setItem("CrowdfundingUser", JSON.stringify(user));
+                    this.props.handleLogin(user);
                 } else {
                     this.setState({
                         error: "Wrong Password"

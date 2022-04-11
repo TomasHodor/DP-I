@@ -1,6 +1,7 @@
 import React from 'react';
 import {Button, Form, Modal} from "react-bootstrap";
 import bcrypt from 'bcryptjs'
+import nodejs_connection from "../../nodejsInstance";
 
 class UserModal extends React.Component {
 
@@ -22,7 +23,7 @@ class UserModal extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
-        fetch('http://localhost:5000/user', {
+        fetch(nodejs_connection + '/user', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({

@@ -1,8 +1,6 @@
 import React from 'react';
 import {Button, Modal} from "react-bootstrap";
-import {DrizzleContext} from "@drizzle/react-plugin";
 import CampaignCreation from "../drizzleComponents/campaignCreation/CampaignCreation";
-
 
 class NewCampaignModal extends React.Component {
 
@@ -25,21 +23,10 @@ class NewCampaignModal extends React.Component {
         return (
             <Modal centered size="lg" show={this.state.show} onHide={this.handleClose} >
                 <Modal.Body>
-                    <DrizzleContext.Consumer>
-                        {drizzleContext => {
-                            const {drizzle, drizzleState, initialized} =  drizzleContext;
-                            if (!initialized) {
-                                return "Loading..."
-                            }
-                            return (
-                                <CampaignCreation
-                                    drizzle={drizzle} drizzleState={drizzleState}
-                                    user_id={this.props.user_id}
-                                    handleClose={this.handleClose}
-                                />
-                            )
-                        }}
-                    </DrizzleContext.Consumer>
+                    <CampaignCreation
+                        user_id={this.props.user_id}
+                        handleClose={this.handleClose}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={this.handleClose}>

@@ -1,8 +1,12 @@
 import React from "react";
 import {Alert, Badge, Button, Card, Col, Container, Form, ProgressBar, Table} from "react-bootstrap";
-import web3 from "./../../../web3instance"
+import web3 from "../../../web3Instance"
+import Web3 from "web3";
 import CrowdfundingCampaign from "../../../contracts/CrowdfundingCampaign.json";
 import ConfirmModal from "../../confirmModal/ConfirmModal";
+import {renderEtherValue} from "../../utils";
+import nodejs_connection from "../../../nodejsInstance";
+import LoadingModal from "../../loadingModal/LoadingModal";
 
 class CampaignDetail extends React.Component {
 
@@ -10,6 +14,7 @@ class CampaignDetail extends React.Component {
         super(props);
         this.state = {
             confirmModal: false,
+            loadingModal: false,
             confirmModalText: '',
             value: '',
             description: '',
@@ -42,6 +47,7 @@ class CampaignDetail extends React.Component {
     }
 
     async componentDidMount() {
+        console.log(web3.eth.accounts.wallet)
         if (!(this.props.name in this.props.drizzle.contracts)) {
             let web3Contract = new web3.eth.Contract(CrowdfundingCampaign.abi, this.props.address);
             let events = ["logContractBalance", "logContributeMoney", "logContributions2length"];
@@ -58,7 +64,7 @@ class CampaignDetail extends React.Component {
             goalValue: parseInt(goalValue),
             campaignOwnerAddress: campaignOwnerAddress
         })
-        let campaignRawRespond = await fetch('http://localhost:5000/campaign/address=' + this.props.address, {
+        let campaignRawRespond = await fetch(nodejs_connection + '/campaign/address=' + this.props.address, {
             method: 'GET', headers: {'Content-Type': 'application/json'}
         });
         let campaignRespond = await campaignRawRespond.json();
@@ -75,13 +81,13 @@ class CampaignDetail extends React.Component {
             const crowdfundingCampaignMethods = this.props.drizzle.contracts[this.props.name].methods;
             let apiResponse = null;
             if (this.state.user.user_id === this.state.campaignOwner) {
-                apiResponse = await fetch('http://localhost:5000/contribution/campaign=' + this.state.campaignId, {
+                apiResponse = await fetch(nodejs_connection + '/contribution/campaign=' + this.state.campaignId, {
                     method: 'GET',
                     headers: {'Content-Type': 'application/json'}
                 });
 
             } else {
-                apiResponse = await fetch('http://localhost:5000/contribution/contributor=' + this.state.user.user_id
+                apiResponse = await fetch(nodejs_connection + '/contribution/contributor=' + this.state.user.user_id
                     + "&campaign=" + this.state.campaignId, {
                     method: 'GET',
                     headers: {'Content-Type': 'application/json'}
@@ -121,6 +127,7 @@ class CampaignDetail extends React.Component {
     }
 
     async contributeCampaign() {
+        this.setState({loadingModal: true})
         const accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
         console.log(accounts)
         if (accounts.length === 0) {
@@ -132,11 +139,12 @@ class CampaignDetail extends React.Component {
         let contributeFunction = await crowdfundingCampaign.methods.contributeCampaign(this.state.description);
         let contributeResult = await contributeFunction.call();
         if (contributeResult) {
+
             let contributeSendResult = await contributeFunction.send({
-                value: web3.utils.toWei(this.state.value, this.state.etherValue), from: account, gas: 1000000
+                value: Web3.utils.toWei(this.state.value, this.state.etherValue), from: account, gas: 1000000
             })
             console.log(contributeSendResult);
-            let postResponse = await fetch('http://localhost:5000/contribution', {
+            let postResponse = await fetch(nodejs_connection + '/contribution', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     campaign: this.state.campaignId,
@@ -151,7 +159,7 @@ class CampaignDetail extends React.Component {
                 campaign: this.state.campaignId,
                 contributor: this.state.user.user_id,
                 hash: contributeSendResult.transactionHash,
-                value: web3.utils.toWei(this.state.value, this.state.etherValue),
+                value: Web3.utils.toWei(this.state.value, this.state.etherValue),
                 text: this.state.description,
                 from: account
             })
@@ -159,13 +167,15 @@ class CampaignDetail extends React.Component {
                 contributions: contributions,
                 value: '',
                 description: '',
-                totalValue: parseInt(this.state.totalValue) + parseInt(web3.utils.toWei(this.state.value, this.state.etherValue)),
+                totalValue: parseInt(this.state.totalValue) + parseInt(Web3.utils.toWei(this.state.value, this.state.etherValue)),
                 gas: contributeSendResult.gasUsed,
                 confirmModal: false,
-                contributeButton: false
+                contributeButton: false,
+                loadingModal: false
             })
         } else {
-            this.setState({ error: "error" })
+            this.setState({ error: "error",
+                loadingModal: false })
         }
     }
 
@@ -183,6 +193,7 @@ class CampaignDetail extends React.Component {
     }
 
     async finishCampaign() {
+        this.setState({loadingModal: true})
         const crowdfundingCampaign = this.props.drizzle.contracts[this.props.name];
         let finishCampaignFunction = await crowdfundingCampaign.methods.finishCampaign()
         let finishCampaignResult = await finishCampaignFunction.call();
@@ -193,7 +204,7 @@ class CampaignDetail extends React.Component {
             });
         }
         let campaignStatus = await this.getCampaignValue("campaignStatus");
-        this.setState({ campaignStatus: campaignStatus, confirmModal: false, finishButton: false });
+        this.setState({ campaignStatus: campaignStatus, confirmModal: false, finishButton: false, loadingModal: false });
     }
 
     cancelCampaignButton(e) {
@@ -242,7 +253,7 @@ class CampaignDetail extends React.Component {
                 gas: 1000000, from: contributions[contributionsCheckBoxs[i]].from
             });
             console.log(withdrawContributionFunction)
-            let deleteResponse = await fetch('http://localhost:5000/contribution/contribution_id=' + contributions[contributionsCheckBoxs[i]].contribution_id, {
+            let deleteResponse = await fetch(nodejs_connection + '/contribution/contribution_id=' + contributions[contributionsCheckBoxs[i]].contribution_id, {
                 method: 'DELETE', headers: {'Content-Type': 'application/json'}
             })
             console.log(deleteResponse);
@@ -289,7 +300,7 @@ class CampaignDetail extends React.Component {
                     <tr key={'row-' + i} id={'row-' + i}>
                         <td>{ dataset[i].from }</td>
                         <td>{ dataset[i].text }</td>
-                        <td>{ this.renderEtherValue(dataset[i].value) }</td>
+                        <td>{ renderEtherValue(dataset[i].value) }</td>
                     </tr>)
             } else {
                 output.push(
@@ -299,27 +310,15 @@ class CampaignDetail extends React.Component {
                                         onChange={() => this.handleOnChange(i)}/></td>
                         <td>{ dataset[i].from }</td>
                         <td>{ dataset[i].text }</td>
-                        <td>{ this.renderEtherValue(dataset[i].value) }</td>
+                        <td>{ renderEtherValue(dataset[i].value) }</td>
                     </tr>)
             }
         }
         return output;
     }
 
-    renderEtherValue(input) {
-        if (typeof input == "number")
-            input = input.toString()
-        let inputInEther = web3.utils.fromWei(input, 'ether')
-        if (parseInt(inputInEther) >= 1)
-            return inputInEther + " Ether"
-        let inputInGwei = web3.utils.fromWei(input, 'gwei')
-        if (parseInt(inputInGwei) >= 1)
-            return inputInGwei + " Gwei"
-        return input + " Wei"
-    }
-
     render() {
-        console.log()
+
         const confirmModal = this.state.confirmModal ? (
             <ConfirmModal
                 show={this.state.confirmModal}
@@ -328,6 +327,7 @@ class CampaignDetail extends React.Component {
                 text={this.state.confirmModalText}
             />
         ) : null;
+        const loadingModal = this.state.loadingModal ? <LoadingModal show={this.state.loadingModal}/> : null;
         const contributeForm = this.state.campaignStatus && this.state.user && this.state.campaignOwner !== this.state.user.user_id ?
             <Form id="contribute" className="mt-3" onSubmit={this.contributeButton.bind(this)}>
                 <Form.Group className="mb-3 row" controlId="formBasicValue">
@@ -367,9 +367,9 @@ class CampaignDetail extends React.Component {
                 </Table>
                 <Button variant="outline-dark" type="submit">Withdraw Contribution</Button>
             </Form> : null
-
         return (
             <Container>
+                {loadingModal}
                 {confirmModal}
                 <p><strong>Address: </strong>{ this.state.campaignAddress }</p>
                 <p><strong>Status: </strong>{
@@ -378,8 +378,8 @@ class CampaignDetail extends React.Component {
                         <Badge pill bg="danger">Canceled</Badge> }</p>
                 <p><strong>Owner: </strong>{ this.state.campaignOwnerMail }<br/>
                     {this.state.campaignOwnerAddress}</p>
-                <p><strong>Total Value: </strong>{ this.renderEtherValue(this.state.totalValue) }</p>
-                <p><strong>Pledged Goal: </strong>{ this.renderEtherValue(this.state.goalValue) }</p>
+                <p><strong>Total Value: </strong>{ renderEtherValue(this.state.totalValue) }</p>
+                <p><strong>Pledged Goal: </strong>{ renderEtherValue(this.state.goalValue) }</p>
                 <Card>
                     <Card.Body>
                         <Card.Title>Description</Card.Title>
