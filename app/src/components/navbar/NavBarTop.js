@@ -1,8 +1,8 @@
-import React from 'react';
 import {Button, Container, Nav, Navbar} from "react-bootstrap";
 import {LinkContainer} from 'react-router-bootstrap'
+import React, {Component} from "react";
 
-class NavBarTop extends React.Component {
+class NavBarTop extends Component {
 
     constructor(props) {
         super(props);
@@ -11,11 +11,12 @@ class NavBarTop extends React.Component {
         };
     }
 
-    logout() {
-        this.props.handleLogout();
+    logout(e) {
+        e.preventDefault();
         this.setState({
             user: {}
-        })
+        });
+        this.props.handleLogout();
     }
 
     render() {

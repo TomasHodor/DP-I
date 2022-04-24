@@ -1,6 +1,5 @@
 import React from 'react';
 import {Button, Form, Modal} from "react-bootstrap";
-import bcrypt from 'bcryptjs'
 import nodejs_connection from "../../nodejsInstance";
 
 class UserModal extends React.Component {
@@ -9,9 +8,8 @@ class UserModal extends React.Component {
         super(props);
         this.state = {
             show: true,
+            user_id: this.props.user.user_id,
             email: this.props.user.email,
-            password: '',
-            password2: '',
             name: this.props.user.name,
             surname: this.props.user.surname,
             phone: this.props.user.phone,
@@ -23,15 +21,18 @@ class UserModal extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
-        fetch(nodejs_connection + '/user', {
-            method: 'POST',
+        fetch(nodejs_connection + '/user/user_id=' + this.state.user_id, {
+            method: 'PUT',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-
+                email: this.state.email,
+                name: this.state.name,
+                surname: this.state.surname,
+                phone: this.state.phone
             })
         })
             .then(response => response.json().then(data => {
-
+                console.log(data)
                 this.handleClose();
             }))
     }
@@ -55,7 +56,7 @@ class UserModal extends React.Component {
                     <Form.Group className="mb-3" controlId="formBasicName">
                         <Form.Control
                             type="text"
-                            placeholder="Enter Name"
+                            placeholder="Enter name"
                             value={this.state.name}
                             onChange={(e) =>  this.setState({name: e.target.value})}
                         />
@@ -63,7 +64,7 @@ class UserModal extends React.Component {
                     <Form.Group className="mb-3" controlId="formBasicSurname">
                         <Form.Control
                             type="text"
-                            placeholder="Enter Surname"
+                            placeholder="Enter surname"
                             value={this.state.surname}
                             onChange={(e) =>  this.setState({surname: e.target.value})}
                         />
@@ -71,30 +72,15 @@ class UserModal extends React.Component {
                     <Form.Group className="mb-3" controlId="formBasicPhone">
                         <Form.Control
                             type="text"
-                            placeholder="Enter Phone"
+                            placeholder="Enter phone"
                             value={this.state.phone}
                             onChange={(e) =>  this.setState({phone: e.target.value})}
                         />
                     </Form.Group>
-                    <Form.Group className="mb-3" controlId="formBasicPassword">
-                        <Form.Control
-                            type="password"
-                            placeholder="Enter password"
-                            value={this.state.password}
-                            onChange={(e) =>  this.setState({password: e.target.value})}
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="formBasicPassword2">
-                        <Form.Control
-                            type="password"
-                            placeholder="Retype password"
-                            value={this.state.password2}
-                            onChange={(e) =>  this.setState({password2: e.target.value})}/>
-                    </Form.Group>
                     <br/>
                 </Form>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={this.handleClose}>
+                    <Button variant="primary" onClick={this.handleSubmit}>
                         Save
                     </Button>
                     <Button variant="secondary" onClick={this.handleClose}>

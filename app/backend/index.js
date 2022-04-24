@@ -48,7 +48,7 @@ app.get('/user/user_id=:id', (req, res) => {
         });
 });
 
-app.get('/user/:email', (req, res) => {
+app.get('/user/email=:email', (req, res) => {
     const email = req.params.email;
     db.select('*')
         .from('user')
@@ -76,6 +76,38 @@ app.post('/user', (req, res) => {
         .then((response) => {
             console.log('User Added');
             return res.json({ user_id: response[0].user_id });
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.put('/user/user_id=:id', (req, res) => {
+    const id = req.params.id;
+    const { email, name, surname, phone } = req.body;
+    db('user')
+        .where('user_id', '=', id )
+        .update({ email: email, name: name, surname: surname, phone: phone })
+        .then((response) => {
+            console.log('User Updated');
+            return res.json({ user_id: id });
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.put('/password/user_id=:id', (req, res) => {
+    const id = req.params.id;
+    const { password } = req.body;
+    db('user')
+        .where('user_id', '=', id )
+        .update({
+            password: password
+        })
+        .then((response) => {
+            console.log('User password updated');
+            return res.json({ user_id: id });
         })
         .catch((err) => {
             console.log(err);

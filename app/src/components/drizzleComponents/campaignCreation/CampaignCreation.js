@@ -61,11 +61,12 @@ class CampaignCreation extends React.Component {
         const deployedContract = await deployTx
             .send({from: account, gas: await deployTx.estimateGas()})
             .on('error', function (error) {
-                this.setState({ error: error.toString(), loadingModal: false });
+                console.log(error)
+                return {"error": error}
             })
             .on("transactionHash", (txhash) => { console.log(txhash)});
 
-        if (this.state.error === '' && "options" in deployedContract) {
+        if ("options" in deployedContract) {
             let postResponse = await fetch(nodejs_connection + '/campaign', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -78,6 +79,8 @@ class CampaignCreation extends React.Component {
             this.setState({ campaign_id: jsonResponse.campaign_id, loadingModal: false
             })
             this.props.handleClose();
+        } else {
+            this.setState({ error: deployedContract.error.toString(), loadingModal: false })
         }
     }
 

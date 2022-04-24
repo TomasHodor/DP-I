@@ -82,7 +82,7 @@ class Registration extends React.Component {
                     <Form.Group className="mb-3" controlId="formBasicName">
                         <Form.Control
                             type="text"
-                            placeholder="Enter Name"
+                            placeholder="Enter name"
                             value={this.state.name}
                             onChange={(e) =>  this.setState({name: e.target.value})}
                         />
@@ -90,7 +90,7 @@ class Registration extends React.Component {
                     <Form.Group className="mb-3" controlId="formBasicSurname">
                         <Form.Control
                             type="text"
-                            placeholder="Enter Surname"
+                            placeholder="Enter surname"
                             value={this.state.surname}
                             onChange={(e) =>  this.setState({surname: e.target.value})}
                         />
@@ -98,7 +98,7 @@ class Registration extends React.Component {
                     <Form.Group className="mb-3" controlId="formBasicPhone">
                         <Form.Control
                             type="text"
-                            placeholder="Enter Phone"
+                            placeholder="Enter phone"
                             value={this.state.phone}
                             onChange={(e) =>  this.setState({phone: e.target.value})}
                         />

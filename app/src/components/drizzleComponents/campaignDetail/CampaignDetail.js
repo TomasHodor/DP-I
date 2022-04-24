@@ -47,7 +47,6 @@ class CampaignDetail extends React.Component {
     }
 
     async componentDidMount() {
-        console.log(web3.eth.accounts.wallet)
         if (!(this.props.name in this.props.drizzle.contracts)) {
             let web3Contract = new web3.eth.Contract(CrowdfundingCampaign.abi, this.props.address);
             let events = ["logContractBalance", "logContributeMoney", "logContributions2length"];
@@ -81,30 +80,53 @@ class CampaignDetail extends React.Component {
             const crowdfundingCampaignMethods = this.props.drizzle.contracts[this.props.name].methods;
             let apiResponse = null;
             if (this.state.user.user_id === this.state.campaignOwner) {
-                apiResponse = await fetch(nodejs_connection + '/contribution/campaign=' + this.state.campaignId, {
-                    method: 'GET',
-                    headers: {'Content-Type': 'application/json'}
-                });
-
+                let jsonResponse = []
+                try {
+                    let contributors_size = await(await crowdfundingCampaignMethods.getNumberOfContributors()).call();
+                    for (let i = 0; i < contributors_size; i++) {
+                        let contributor_address = await (await crowdfundingCampaignMethods.contributors(i)).call();
+                        let contributions_size = await (await crowdfundingCampaignMethods.getNumberOfAddressContribution(contributor_address)).call();
+                        for (let j = 0; j < contributions_size; j++) {
+                            let contribution = await (await crowdfundingCampaignMethods.contributions(contributor_address, j)).call();
+                            jsonResponse.push({
+                                "from": contributor_address,
+                                "value": contribution.value,
+                                "text": contribution.description
+                            })
+                        }
+                    }
+                }
+                catch(ex) {
+                    console.log(ex);
+                }
+                this.setState({ contributions: jsonResponse })
             } else {
                 apiResponse = await fetch(nodejs_connection + '/contribution/contributor=' + this.state.user.user_id
                     + "&campaign=" + this.state.campaignId, {
                     method: 'GET',
                     headers: {'Content-Type': 'application/json'}
                 });
-            }
-            let jsonResponse = await apiResponse.json();
-            for (let i = 0; i < jsonResponse.length; i++) {
-                if (jsonResponse[i].hash) {
-                    let trans = await web3.eth.getTransaction(jsonResponse[i].hash);
-                    let valueTypeFunc = await crowdfundingCampaignMethods.contributions(trans.from, i);
-                    let contribution = await valueTypeFunc.call();
-                    jsonResponse[i]["value"] = trans.value;
-                    jsonResponse[i]["from"] = trans.from;
-                    jsonResponse[i]["text"] = contribution.description;
+                let jsonResponse = await apiResponse.json();
+                for (let i = 0; i < jsonResponse.length; i++) {
+                    if (jsonResponse[i].hash) {
+                        try {
+                            let trans = await web3.eth.getTransaction(jsonResponse[i].hash);
+                            if (trans) {
+                                jsonResponse[i]["value"] = trans.value;
+                                jsonResponse[i]["from"] = trans.from;
+                            }
+                            let contribution = await(await crowdfundingCampaignMethods.contributions(trans.from, i)).call();
+                            if (contribution) {
+                                jsonResponse[i]["text"] = contribution.description;
+                            }
+                        }
+                        catch(ex) {
+                            console.log(ex);
+                        }
+                    }
                 }
+                this.setState({ contributions: jsonResponse })
             }
-            this.setState({ contributions: jsonResponse })
         }
     }
 
