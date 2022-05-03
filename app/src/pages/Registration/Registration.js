@@ -33,11 +33,17 @@ class Registration extends React.Component {
             return;
         }
 
+        if (!/\d/.test(this.state.password) || !/[A-Z]/.test(this.state.password) || this.state.password.length < 8) {
+            this.setState({formError: "Password must contain at least one upper letter, one number and must be at least 8 characters long", error: {'password': true}});
+            return;
+        }
+
         if (this.state.password !== this.state.password2) {
             this.setState({formError: "Passwords are not same", error: {'password': true}});
             return;
         }
-        let users = await fetch('http://127.0.0.1:5000/user/' + this.state.email, {
+
+        let users = await fetch('http://127.0.0.1:5000/user/email=' + this.state.email, {
             method: 'GET',
             headers: {'Content-Type': 'application/json'}
         })
@@ -60,8 +66,10 @@ class Registration extends React.Component {
                 phone: this.state.phone
             })
         }).then(response => response.json().then(data => {
-            this.props.handleLogin({"user_id": data.user_id, "email": this.state.email});
+            let user = {"user_id": data.user_id, "email": this.state.email}
+            localStorage.setItem("CrowdfundingUser", JSON.stringify(user));
             this.setState({user_id: data.user_id});
+            this.props.handleLogin({"user_id": data.user_id, "email": this.state.email});
         }))
     }
 

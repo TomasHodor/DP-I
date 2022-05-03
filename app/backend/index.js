@@ -97,7 +97,7 @@ app.put('/user/user_id=:id', (req, res) => {
         });
 });
 
-app.put('/password/user_id=:id', (req, res) => {
+app.put('/user/user_id=:id/password', (req, res) => {
     const id = req.params.id;
     const { password } = req.body;
     db('user')

@@ -31,6 +31,11 @@ class PasswordModal extends React.Component {
             return;
         }
 
+        if (!/\d/.test(this.state.password) || !/[A-Z]/.test(this.state.password) || this.state.password.length < 8) {
+            this.setState({error: "Password must contain at least one upper letter, one number and must be at least 8 characters long"});
+            return;
+        }
+
         if (this.state.password !== this.state.password2) {
             this.setState({error: "Passwords are not same"});
             return;
@@ -39,7 +44,7 @@ class PasswordModal extends React.Component {
         const success = await bcrypt.compare(this.state.old_password, this.props.user.password);
         if (success) {
             const hashedPassword = await bcrypt.hash(this.state.password, 10)
-            fetch(nodejs_connection + '/password/user_id=' + this.props.user.user_id, {
+            fetch(nodejs_connection + '/user/user_id=' + this.props.user.user_id  + '/password', {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
