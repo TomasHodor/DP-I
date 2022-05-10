@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+
+  crowdfunding-ui:
+    container_name: dp-i-project_crowdfunding-ui
+    build: ./app
+    ports:
+      - 3000:3000
+    stdin_open: true
+
+  crowdfunding-backend:
+    container_name: dp-i-project_crowdfunding-backend
+    build: ./app/backend
+    ports:
+      - 5000:5000
+    stdin_open: true
+
+  crowdfunding-database:
+    image: postgres:12.2 # use latest official postgres version
+    env_file:
+      - database.env # configure postgres
+    volumes:
+      - ./app/db_scripts.sql:/docker-entrypoint-initdb.d/db_scripts.sql
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+volumes:
+  postgres_data:
