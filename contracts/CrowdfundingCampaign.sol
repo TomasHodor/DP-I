@@ -102,10 +102,10 @@ contract CrowdfundingCampaign {
         uint256 contractBalance = address(this).balance;
         emit logContractBalance(contractBalance);
         if (keccak256(bytes(campaignStatus)) == keccak256(bytes("active")) && address(this).balance >= goalValue) {
-            bool success = msg.sender.send(totalValue);
+            bool success = ownerAddress.send(totalValue);
             if (success) {
                 campaignStatus = "finished";
-                emit logContributeMoney(address(this), msg.sender, totalValue);
+                emit logContributeMoney(address(this), ownerAddress, totalValue);
                 contractBalance = address(this).balance;
                 emit logContractBalance(contractBalance);
                 return success;

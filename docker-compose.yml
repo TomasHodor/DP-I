@@ -3,14 +3,14 @@ version: '3.8'
 services:
 
   crowdfunding-ui:
-    container_name: dp-i-project_crowdfunding-ui
+    container_name: crowdfunding-ui
     build: ./app
     ports:
       - 3000:3000
     stdin_open: true
 
   crowdfunding-backend:
-    container_name: dp-i-project_crowdfunding-backend
+    container_name: crowdfunding-backend
     build: ./app/backend
     ports:
       - 5000:5000
@@ -27,3 +27,4 @@ services:
       - 5432:5432
 volumes:
   postgres_data:
+

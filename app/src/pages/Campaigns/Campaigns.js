@@ -5,6 +5,7 @@ import {Badge, Button, Container, Table} from "react-bootstrap";
 import {renderEtherValue} from "../../components/utils";
 import web3 from "../../web3Instance"
 import "./Campaigns.css"
+import nodejs_connection from "../../nodejsInstance";
 
 import CrowdfundingCampaign from "../../contracts/CrowdfundingCampaign.json";
 
@@ -62,7 +63,7 @@ class Campaigns extends React.Component {
     }
 
     getAllCampaigns() {
-        fetch( 'http://127.0.0.1:5000/campaign', {
+        fetch(nodejs_connection +'/campaign', {
             method: 'GET',
             headers: {'Content-Type': 'application/json'}
         }).then(response => response.json().then(async data => {

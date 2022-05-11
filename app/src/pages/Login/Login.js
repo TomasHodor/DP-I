@@ -28,6 +28,7 @@ class Login extends React.Component {
             this.setState({error: "Empty Password"});
             return;
         }
+        console.log(nodejs_connection + '/user/email=' + this.state.email)
         fetch(nodejs_connection + '/user/email=' + this.state.email, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }

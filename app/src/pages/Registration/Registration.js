@@ -2,6 +2,7 @@ import React from 'react';
 import {Button, Form, Container, Alert} from "react-bootstrap"
 import bcrypt from "bcryptjs";
 import {Navigate} from "react-router-dom";
+import nodejs_connection from "../../nodejsInstance"
 
 class Registration extends React.Component {
 
@@ -43,7 +44,7 @@ class Registration extends React.Component {
             return;
         }
 
-        let users = await fetch('http://127.0.0.1:5000/user/email=' + this.state.email, {
+        let users = await fetch(nodejs_connection + '/user/email=' + this.state.email, {
             method: 'GET',
             headers: {'Content-Type': 'application/json'}
         })
@@ -55,7 +56,7 @@ class Registration extends React.Component {
         }
 
         const hashedPassword = await bcrypt.hash(this.state.password, 10)
-        fetch('http://127.0.0.1:5000/user', {
+        fetch(nodejs_connection +'/user', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
