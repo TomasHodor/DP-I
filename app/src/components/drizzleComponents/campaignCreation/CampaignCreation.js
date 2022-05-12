@@ -58,29 +58,29 @@ class CampaignCreation extends React.Component {
             data: CrowdfundingCampaign.bytecode,
             arguments: [this.state.name, web3.utils.toWei(this.state.goal, this.state.etherValue), account]
         });
-        const deployedContract = await deployTx
-            .send({from: account, gas: await deployTx.estimateGas()})
-            .on('error', function (error) {
-                console.log(error)
-                return {"error": error}
-            })
-            .on("transactionHash", (txhash) => { console.log(txhash)});
-
-        if ("options" in deployedContract) {
-            let postResponse = await fetch(nodejs_connection + '/campaign', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    owner: campaignOwner,
-                    address: deployedContract.options.address,
-                    description: this.state.description
-                })
-            });
-            let jsonResponse = await postResponse.json();
-            this.setState({ campaign_id: jsonResponse.campaign_id, loadingModal: false
-            })
-            this.props.handleClose();
-        } else {
-            this.setState({ error: deployedContract.error.toString(), loadingModal: false })
+        try {
+            const deployedContract = await deployTx
+                .send({from: account, gas: await deployTx.estimateGas()})
+                .on("transactionHash", (txhash) => { console.log(txhash)});
+            if ("options" in deployedContract) {
+                let postResponse = await fetch(nodejs_connection + '/campaign', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        owner: campaignOwner,
+                        address: deployedContract.options.address,
+                        description: this.state.description
+                    })
+                });
+                let jsonResponse = await postResponse.json();
+                this.setState({ campaign_id: jsonResponse.campaign_id, loadingModal: false})
+                this.props.handleClose();
+            }
+        } catch (error) {
+            console.log(error)
+            if ("message" in error)
+                this.setState({ error: error.message, loadingModal: false, confirmModal: false })
+            else
+                this.setState({ error: error.toString(), loadingModal: false, confirmModal: false })
         }
     }
 

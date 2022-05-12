@@ -145,13 +145,12 @@ class CampaignDetail extends React.Component {
             error: '',
             confirmModal: true,
             contributeButton: true,
-            confirmModalText: "Do you want to contribute to this campaign ?"});
+            confirmModalText: "Do you want to contribute to this campaign?"});
     }
 
     async contributeCampaign() {
         this.setState({loadingModal: true})
         const accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
-        console.log(accounts)
         if (accounts.length === 0) {
             this.setState({ error: 'No MetaMask accounts' });
             return;
@@ -159,45 +158,51 @@ class CampaignDetail extends React.Component {
         const account = accounts[0];
         const crowdfundingCampaign = this.props.drizzle.contracts[this.props.name];
         let contributeFunction = await crowdfundingCampaign.methods.contributeCampaign(this.state.description);
+        let contributeGas = await crowdfundingCampaign.methods.contributeCampaign(this.state.description).estimateGas();
+        console.log(contributeGas);
         let contributeResult = await contributeFunction.call();
         if (contributeResult) {
-
-            let contributeSendResult = await contributeFunction.send({
-                value: Web3.utils.toWei(this.state.value, this.state.etherValue), from: account, gas: 1000000
-            })
-            console.log(contributeSendResult);
-            let postResponse = await fetch(nodejs_connection + '/contribution', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
+            try {
+                let contributeSendResult = await contributeFunction.send({
+                    from: account, gas: 1000000,
+                    value: Web3.utils.toWei(this.state.value, this.state.etherValue)
+                })
+                console.log(contributeSendResult);
+                let postResponse = await fetch(nodejs_connection + '/contribution', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        campaign: this.state.campaignId,
+                        contributor: this.state.user.user_id,
+                        hash: contributeSendResult.transactionHash
+                    })
+                });
+                let jsonResponse = await postResponse.json();
+                let contributions = this.state.contributions;
+                contributions.push({
+                    contribution_id: jsonResponse.contribution_id,
                     campaign: this.state.campaignId,
                     contributor: this.state.user.user_id,
-                    hash: contributeSendResult.transactionHash
+                    hash: contributeSendResult.transactionHash,
+                    value: Web3.utils.toWei(this.state.value, this.state.etherValue),
+                    text: this.state.description,
+                    from: account
                 })
-            });
-            let jsonResponse = await postResponse.json();
-            let contributions = this.state.contributions;
-            contributions.push({
-                contribution_id: jsonResponse.contribution_id,
-                campaign: this.state.campaignId,
-                contributor: this.state.user.user_id,
-                hash: contributeSendResult.transactionHash,
-                value: Web3.utils.toWei(this.state.value, this.state.etherValue),
-                text: this.state.description,
-                from: account
-            })
-            this.setState({
-                contributions: contributions,
-                value: '',
-                description: '',
-                totalValue: parseInt(this.state.totalValue) + parseInt(Web3.utils.toWei(this.state.value, this.state.etherValue)),
-                gas: contributeSendResult.gasUsed,
-                confirmModal: false,
-                contributeButton: false,
-                loadingModal: false
-            })
-        } else {
-            this.setState({ error: "error",
-                loadingModal: false })
+                this.setState({
+                    contributions: contributions,
+                    value: '', description: '',
+                    totalValue: parseInt(this.state.totalValue) + parseInt(Web3.utils.toWei(this.state.value, this.state.etherValue)),
+                    gas: contributeSendResult.gasUsed,
+                    confirmModal: false,
+                    contributeButton: false,
+                    loadingModal: false
+                })
+            } catch (error) {
+                console.log(error)
+                if ("message" in error)
+                    this.setState({ error: error.message, loadingModal: false, confirmModal: false })
+                else
+                    this.setState({ error: error.toString(), loadingModal: false, confirmModal: false })
+            }
         }
     }
 
@@ -219,14 +224,22 @@ class CampaignDetail extends React.Component {
         const crowdfundingCampaign = this.props.drizzle.contracts[this.props.name];
         let finishCampaignFunction = await crowdfundingCampaign.methods.finishCampaign()
         let finishCampaignResult = await finishCampaignFunction.call();
-        console.log(finishCampaignResult);
         if (finishCampaignResult) {
-            await finishCampaignFunction.send({
-                gas: 1000000, from: this.state.campaignOwnerAddress
-            });
+            try {
+                await finishCampaignFunction.send({
+                    gas: 1000000, from: this.state.campaignOwnerAddress
+                });
+                let campaignStatus = await this.getCampaignValue("campaignStatus");
+                this.setState({ campaignStatus: campaignStatus, confirmModal: false, finishButton: false, loadingModal: false });
+            } catch (error) {
+                console.log(error)
+                if ("message" in error)
+                    this.setState({ error: error.message, loadingModal: false, confirmModal: false })
+                else
+                    this.setState({ error: error.toString(), loadingModal: false, confirmModal: false })
+            }
         }
-        let campaignStatus = await this.getCampaignValue("campaignStatus");
-        this.setState({ campaignStatus: campaignStatus, confirmModal: false, finishButton: false, loadingModal: false });
+
     }
 
     cancelCampaignButton(e) {
@@ -244,17 +257,23 @@ class CampaignDetail extends React.Component {
         let cancelCampaignResult = await cancelCampaignFunction.call();
         console.log(cancelCampaignResult);
         if (cancelCampaignResult) {
-            cancelCampaignFunction.send({
-                gas: 1000000,
-                from: this.state.campaignOwnerAddress
-            });
+            try {
+                await cancelCampaignFunction.send({
+                    gas: 1000000, from: this.state.campaignOwnerAddress
+                });
+                let campaignStatus = await this.getCampaignValue("campaignStatus");
+                this.setState({
+                    campaignStatus: campaignStatus, confirmModal: false, cancelButton: false
+                });
+            } catch (error) {
+                console.log(error)
+                if ("message" in error)
+                    this.setState({ error: error.message, loadingModal: false, confirmModal: false })
+                else
+                    this.setState({ error: error.toString(), loadingModal: false, confirmModal: false })
+            }
         }
-        let campaignStatus = await this.getCampaignValue("campaignStatus");
-        this.setState({
-            campaignStatus: campaignStatus,
-            confirmModal: false,
-            cancelButton: false
-        });
+
     }
 
     withdrawContributionButton(e) {
@@ -271,10 +290,19 @@ class CampaignDetail extends React.Component {
         let contributionsCheckBoxs = this.state.contributionsCheckBoxs;
         let contributions = this.state.contributions;
         for (let i = 0; i < contributionsCheckBoxs.length; i++) {
-            let withdrawContributionFunction = await crowdfundingCampaign.methods.withdrawContribution(contributionsCheckBoxs[i]).send({
-                gas: 1000000, from: contributions[contributionsCheckBoxs[i]].from
-            });
-            console.log(withdrawContributionFunction)
+            try {
+                let withdrawContributionFunction = await crowdfundingCampaign.methods.withdrawContribution(contributionsCheckBoxs[i]).send({
+                    gas: 1000000, from: contributions[contributionsCheckBoxs[i]].from
+                });
+                console.log(withdrawContributionFunction)
+            } catch (error) {
+                console.log(error)
+                if ("message" in error)
+                    this.setState({ error: error.message, loadingModal: false, confirmModal: false })
+                else
+                    this.setState({ error: error.toString(), loadingModal: false, confirmModal: false })
+                break
+            }
             let deleteResponse = await fetch(nodejs_connection + '/contribution/contribution_id=' + contributions[contributionsCheckBoxs[i]].contribution_id, {
                 method: 'DELETE', headers: {'Content-Type': 'application/json'}
             })

@@ -44,9 +44,9 @@ class Campaigns extends React.Component {
         });
     }
 
-    closeCampaignModal() {
+    async closeCampaignModal() {
         if (this.state.campaignModal)
-            this.getAllCampaigns();
+            await this.getAllCampaigns();
         this.setState({
             campaignModal: false
         });
@@ -56,18 +56,23 @@ class Campaigns extends React.Component {
         this.setState({ newCampaignModal: true });
     }
 
-    closeNewCampaignModal() {
+    async closeNewCampaignModal() {
         if (this.state.newCampaignModal)
-            this.getAllCampaigns();
+            await this.getAllCampaigns();
         this.setState({ newCampaignModal: false });
     }
 
-    getAllCampaigns() {
-        fetch(nodejs_connection +'/campaign', {
+    async getAllCampaigns()  {
+        let response = await fetch(nodejs_connection +'/campaign', {
             method: 'GET',
             headers: {'Content-Type': 'application/json'}
-        }).then(response => response.json().then(async data => {
-            for (let i = 0; i < data.length; i++) {
+        }).catch((error) => {
+          console.log(error);
+          return [];
+        });
+        let data = await response.json();
+        for (let i = 0; i < data.length; i++) {
+            try {
                 let web3Contract = new web3.eth.Contract(CrowdfundingCampaign.abi, data[i].address);
                 let nameFunc = await web3Contract.methods.campaignName.call();
                 data[i].name = await nameFunc.call();
@@ -77,9 +82,12 @@ class Campaigns extends React.Component {
                 data[i].goalValue = parseInt(await goalValueFunc.call());
                 let totalValueFunc = await web3Contract.methods.totalValue.call();
                 data[i].totalValue = parseInt(await totalValueFunc.call());
+            } catch (error) {
+                console.log(error);
+                data[i].name = "Name error"
             }
-            this.setState({ dataset: data })
-        }));
+        }
+        this.setState({ dataset: data })
     }
 
     showData() {
